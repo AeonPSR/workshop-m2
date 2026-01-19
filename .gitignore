@@ -45,3 +45,5 @@ next-env.d.ts
 
 # Misc
 *.log
+
+/src/generated/prisma

@@ -1,11 +1,20 @@
-import Database from "better-sqlite3";
-import path from "path";
+import Database from 'better-sqlite3';
+import path from 'path';
 
-const dbPath = path.join(process.cwd(), "database.db");
+// Chemin vers votre fichier de base de données
+const dbPath = path.join(process.cwd(), 'database.db');
 
+// Initialisation de la base de données
 const db = new Database(dbPath);
 
-// Enable WAL mode for better performance
-db.pragma("journal_mode = WAL");
+// Création des tables manuellement au démarrage si elles n'existent pas
+db.exec(`
+  CREATE TABLE IF NOT EXISTS Badge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    initials TEXT,
+    image TEXT
+  );
+`);
 
 export default db;
