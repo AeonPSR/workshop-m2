@@ -1,0 +1,17 @@
+<svg viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9333ea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Monogram dots -->
+  <circle cx="8" cy="12" r="3" fill="url(#grad)"/>
+  <circle cx="18" cy="8" r="3" fill="url(#grad)"/>
+  <circle cx="28" cy="12" r="3" fill="url(#grad)"/>
+  <circle cx="8" cy="22" r="3" fill="url(#grad)"/>
+  <circle cx="18" cy="18" r="3" fill="url(#grad)"/>
+  <circle cx="18" cy="28" r="3" fill="url(#grad)"/>
+  <!-- Text -->
+  <text x="40" y="28" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="url(#grad)">SCOUTIFY</text>
+</svg>
