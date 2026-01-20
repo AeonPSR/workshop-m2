@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -161,14 +161,38 @@ export default function PlayerForm() {
     phone: "",
     cvColor: "#1E5EFF",
     
-    // Step 4 - Career (simplified for now)
+    // Step 4 - Career
     seasons: [] as Array<{
       year: string;
+      isSplit: boolean;
+      isCurrent: boolean;
+      // Full season data
       club: string;
       category: string;
       matches: string;
       goals: string;
       assists: string;
+      cleanSheets: string;
+      avgPlayingTime: string;
+      // Split season data
+      firstHalf: {
+        club: string;
+        category: string;
+        matches: string;
+        goals: string;
+        assists: string;
+        cleanSheets: string;
+        avgPlayingTime: string;
+      };
+      secondHalf: {
+        club: string;
+        category: string;
+        matches: string;
+        goals: string;
+        assists: string;
+        cleanSheets: string;
+        avgPlayingTime: string;
+      };
     }>,
     
     // Step 5 - Formation & Trials
@@ -192,6 +216,7 @@ export default function PlayerForm() {
 
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
+  const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
 
   const updateFormData = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -245,14 +270,44 @@ export default function PlayerForm() {
     if (formData.seasons.length < 5) {
       updateFormData("seasons", [
         ...formData.seasons,
-        { year: "", club: "", category: "", matches: "", goals: "", assists: "" }
+        {
+          year: "",
+          isSplit: false,
+          isCurrent: false,
+          club: "",
+          category: "",
+          matches: "",
+          goals: "",
+          assists: "",
+          cleanSheets: "",
+          avgPlayingTime: "",
+          firstHalf: { club: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
+          secondHalf: { club: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+        }
       ]);
     }
   };
 
-  const updateSeason = (index: number, field: string, value: string) => {
+  const updateSeason = (index: number, field: string, value: string | boolean) => {
     const newSeasons = [...formData.seasons];
     newSeasons[index] = { ...newSeasons[index], [field]: value };
+    updateFormData("seasons", newSeasons);
+  };
+
+  const updateSeasonHalf = (index: number, half: "firstHalf" | "secondHalf", field: string, value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[index] = {
+      ...newSeasons[index],
+      [half]: { ...newSeasons[index][half], [field]: value }
+    };
+    updateFormData("seasons", newSeasons);
+  };
+
+  const setCurrentSeason = (index: number) => {
+    const newSeasons = formData.seasons.map((season, i) => ({
+      ...season,
+      isCurrent: i === index
+    }));
     updateFormData("seasons", newSeasons);
   };
 
@@ -300,7 +355,7 @@ export default function PlayerForm() {
   const getNationality = (code: string) => NATIONALITIES.find(n => n.code === code);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a]">
       <Header />
 
       <main className="flex-1 py-6">
@@ -310,51 +365,51 @@ export default function PlayerForm() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               {STEPS.map((step, index) => (
-                <div key={step.id} className="flex items-center">
+                <React.Fragment key={step.id}>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(step.id)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${
                       step.id <= currentStep
-                        ? "bg-purple-600 text-white"
-                        : "bg-gray-200 text-gray-500 hover:bg-gray-300"
+                        ? "bg-[#FF9228] text-white"
+                        : "bg-white/10 text-white/50 hover:bg-white/20"
                     }`}
                   >
                     {step.id}
                   </button>
                   {index < STEPS.length - 1 && (
                     <div
-                      className={`w-8 md:w-16 h-1 mx-1 ${
-                        step.id < currentStep ? "bg-purple-600" : "bg-gray-200"
+                      className={`flex-1 h-1 mx-2 ${
+                        step.id < currentStep ? "bg-[#FF9228]" : "bg-white/10"
                       }`}
                     />
-                )}
-                </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
-            <p className="text-center text-sm text-gray-600 font-medium">
+            <p className="text-center text-sm text-white/60 font-medium">
               {STEPS[currentStep - 1].name}
             </p>
           </div>
 
           {/* Form Card */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
             
             {/* Step 1: Identity */}
             {currentStep === 1 && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-gray-800">Identité</h2>
+                <h2 className="text-xl font-bold text-white">Identité</h2>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white/80 mb-2">
                     Photo *
                   </label>
                   <div className="flex items-center gap-4">
-                    <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-dashed border-gray-300">
+                    <div className="w-24 h-24 rounded-full bg-white/10 overflow-hidden flex items-center justify-center border-2 border-dashed border-white/20">
                       {formData.photoPreview ? (
                         <img src={formData.photoPreview} alt="Preview" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-3xl text-gray-400">👤</span>
+                        <span className="text-3xl text-white/40">👤</span>
                       )}
                     </div>
                     <div>
@@ -367,37 +422,37 @@ export default function PlayerForm() {
                       />
                       <label
                         htmlFor="photo-upload"
-                        className="inline-block px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors text-sm"
+                        className="inline-block px-4 py-2 bg-[#FF9228] text-white rounded-lg cursor-pointer hover:bg-[#FF9228]/80 transition-colors text-sm"
                       >
                         Choisir une photo
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">Format carré recommandé</p>
+                      <p className="text-xs text-white/50 mt-1">Format carré recommandé</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Prénom *
                     </label>
                     <input
                       type="text"
                       value={formData.firstName}
                       onChange={(e) => updateFormData("firstName", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                       placeholder="Prénom"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Nom *
                     </label>
                     <input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => updateFormData("lastName", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                       placeholder="Nom"
                     />
                   </div>
@@ -405,14 +460,14 @@ export default function PlayerForm() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-white/80">
                       Nationalité(s) *
                     </label>
                     {formData.nationalities.length < 3 && (
                       <button
                         type="button"
                         onClick={addNationality}
-                        className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1"
+                        className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
                       >
                         <span className="text-lg">+</span> Ajouter
                       </button>
@@ -429,14 +484,14 @@ export default function PlayerForm() {
                               setEditingNationalityIndex(index);
                               setIsNationalityModalOpen(true);
                             }}
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-purple-400 transition-colors"
+                            className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-left flex items-center justify-between hover:border-[#FF9228]/50 transition-colors"
                           >
                             {nation ? (
-                              <span>{nation.name}</span>
+                              <span className="text-white">{nation.name}</span>
                             ) : (
-                              <span className="text-gray-400">Sélectionner une nationalité</span>
+                              <span className="text-white/40">Sélectionner une nationalité</span>
                             )}
-                            <span className="text-gray-400">▼</span>
+                            <span className="text-white/40">▼</span>
                           </button>
                           {formData.nationalities.length > 1 && (
                             <button
@@ -459,10 +514,10 @@ export default function PlayerForm() {
             {/* Step 2: Poste */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-gray-800">Poste</h2>
+                <h2 className="text-xl font-bold text-white">Poste</h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white/80 mb-2">
                     Composition à afficher *
                   </label>
                   <div className="flex gap-3">
@@ -475,8 +530,8 @@ export default function PlayerForm() {
                       }}
                       className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
                         formData.composition === "4-3-3"
-                          ? "bg-purple-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          ? "bg-[#FF9228] text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
                       }`}
                     >
                       4-3-3
@@ -490,8 +545,8 @@ export default function PlayerForm() {
                       }}
                       className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
                         formData.composition === "3-5-2"
-                          ? "bg-purple-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          ? "bg-[#FF9228] text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
                       }`}
                     >
                       3-5-2
@@ -500,17 +555,17 @@ export default function PlayerForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white/80 mb-2">
                     Poste principal *
                   </label>
                   <select
                     value={formData.mainPosition}
                     onChange={(e) => updateFormData("mainPosition", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                   >
-                    <option value="">Sélectionner</option>
+                    <option value="" className="bg-[#1a1a1a]">Sélectionner</option>
                     {(formData.composition === "4-3-3" ? POSITIONS_433 : POSITIONS_352).map((pos) => (
-                      <option key={pos.value} value={pos.value}>{pos.label}</option>
+                      <option key={pos.value} value={pos.value} className="bg-[#1a1a1a]">{pos.label}</option>
                     ))}
                   </select>
                 </div>
@@ -519,7 +574,7 @@ export default function PlayerForm() {
                   <button
                     type="button"
                     onClick={() => updateFormData("secondaryPosition", "_show")}
-                    className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1"
+                    className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
                   >
                     <span className="text-lg">+</span> Ajouter un poste secondaire
                   </button>
@@ -528,7 +583,7 @@ export default function PlayerForm() {
                 {(formData.secondaryPosition || formData.secondaryPosition === "_show") && formData.secondaryPosition !== "" && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-white/80">
                         Poste secondaire
                       </label>
                       <button
@@ -542,13 +597,13 @@ export default function PlayerForm() {
                     <select
                       value={formData.secondaryPosition === "_show" ? "" : formData.secondaryPosition}
                       onChange={(e) => updateFormData("secondaryPosition", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                     >
-                      <option value="">Sélectionner</option>
+                      <option value="" className="bg-[#1a1a1a]">Sélectionner</option>
                       {(formData.composition === "4-3-3" ? POSITIONS_433 : POSITIONS_352)
                         .filter(pos => pos.value !== formData.mainPosition)
                         .map((pos) => (
-                          <option key={pos.value} value={pos.value}>{pos.label}</option>
+                          <option key={pos.value} value={pos.value} className="bg-[#1a1a1a]">{pos.label}</option>
                         ))}
                     </select>
                   </div>
@@ -556,7 +611,7 @@ export default function PlayerForm() {
 
                 {/* Pitch Visualization */}
                 <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-white/80 mb-3">
                     Visualisation
                   </label>
                   <div className="flex justify-center">
@@ -573,20 +628,20 @@ export default function PlayerForm() {
                       {formData.composition === "4-3-3" && (
                         <>
                           {/* Goalkeeper */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "GB" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "GB" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "4%", left: "50%" }} title="Gardien de but" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "GB" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "GB" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "4%", left: "50%" }} title="Gardien de but" />
                           {/* Defense */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "18%", left: "15%" }} title="Arrière gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "38%" }} title="Défenseur central gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "62%" }} title="Défenseur central droit" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "18%", left: "85%" }} title="Arrière droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "AG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "18%", left: "15%" }} title="Arrière gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "DCG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "38%" }} title="Défenseur central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "DCD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "62%" }} title="Défenseur central droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "AD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "18%", left: "85%" }} title="Arrière droit" />
                           {/* Midfield */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "38%", left: "50%" }} title="Milieu défensif" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "30%" }} title="Milieu central gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "70%" }} title="Milieu central droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "MD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "38%", left: "50%" }} title="Milieu défensif" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "MCG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "30%" }} title="Milieu central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "MCD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "70%" }} title="Milieu central droit" />
                           {/* Attack */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AIG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AIG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "18%" }} title="Ailier gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AC" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AC" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "78%", left: "50%" }} title="Avant-centre" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AID" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AID" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "82%" }} title="Ailier droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AIG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "AIG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "18%" }} title="Ailier gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AC" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "AC" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "78%", left: "50%" }} title="Avant-centre" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AID" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "AID" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "82%" }} title="Ailier droit" />
                         </>
                       )}
 
@@ -594,34 +649,34 @@ export default function PlayerForm() {
                       {formData.composition === "3-5-2" && (
                         <>
                           {/* Goalkeeper */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "GB" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "GB" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "4%", left: "50%" }} title="Gardien de but" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "GB" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "GB" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "4%", left: "50%" }} title="Gardien de but" />
                           {/* Defense */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "25%" }} title="Défenseur central gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCA" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCA" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "12%", left: "50%" }} title="Défenseur central axe" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "75%" }} title="Défenseur central droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "DCG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "25%" }} title="Défenseur central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCA" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "DCA" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "12%", left: "50%" }} title="Défenseur central axe" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "DCD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "75%" }} title="Défenseur central droit" />
                           {/* Midfield */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "PG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "PG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "40%", left: "10%" }} title="Piston gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "PD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "PD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "40%", left: "90%" }} title="Piston droit" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "32%", left: "50%" }} title="Milieu défensif" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "35%" }} title="Milieu central gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "65%" }} title="Milieu central droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "PG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "PG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "40%", left: "10%" }} title="Piston gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "PD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "PD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "40%", left: "90%" }} title="Piston droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "MD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "32%", left: "50%" }} title="Milieu défensif" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "MCG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "35%" }} title="Milieu central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "MCD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "65%" }} title="Milieu central droit" />
                           {/* Attack */}
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "ATG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "ATG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "35%" }} title="Attaquant gauche" />
-                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "ATD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "ATD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "65%" }} title="Attaquant droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "ATG" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "ATG" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "35%" }} title="Attaquant gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "ATD" ? "bg-[#FF9228] ring-2 ring-white scale-125" : formData.secondaryPosition === "ATD" ? "bg-[#FF9228]/60 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "65%" }} title="Attaquant droit" />
                         </>
                       )}
                     </div>
                   </div>
                   
                   {/* Legend */}
-                  <div className="flex justify-center gap-6 mt-4 text-sm text-gray-600">
+                  <div className="flex justify-center gap-6 mt-4 text-sm text-white/60">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-purple-500 ring-2 ring-white" />
+                      <div className="w-3 h-3 rounded-full bg-[#FF9228]/100 ring-2 ring-white" />
                       <span>Principal</span>
                     </div>
                     {formData.secondaryPosition && formData.secondaryPosition !== "_show" && (
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-purple-300 ring-2 ring-white" />
+                        <div className="w-3 h-3 rounded-full bg-[#FF9228]/60 ring-2 ring-white" />
                         <span>Secondaire</span>
                       </div>
                     )}
@@ -633,64 +688,64 @@ export default function PlayerForm() {
             {/* Step 3: Profil */}
             {currentStep === 3 && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-gray-800">Profil sportif</h2>
+                <h2 className="text-xl font-bold text-white">Profil sportif</h2>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Date de naissance *
                     </label>
                     <input
                       type="date"
                       value={formData.birthDate}
                       onChange={(e) => updateFormData("birthDate", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Pied fort *
                     </label>
                     <select
                       value={formData.preferredFoot}
                       onChange={(e) => updateFormData("preferredFoot", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                     >
-                      <option value="">Sélectionner</option>
-                      <option value="Droit">Droit</option>
-                      <option value="Gauche">Gauche</option>
-                      <option value="Ambidextre">Ambidextre</option>
+                      <option value="" className="bg-[#1a1a1a]">Sélectionner</option>
+                      <option value="Droit" className="bg-[#1a1a1a]">Droit</option>
+                      <option value="Gauche" className="bg-[#1a1a1a]">Gauche</option>
+                      <option value="Ambidextre" className="bg-[#1a1a1a]">Ambidextre</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Taille (cm) *
                     </label>
                     <input
                       type="number"
                       value={formData.height}
                       onChange={(e) => updateFormData("height", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                       placeholder="180"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Poids (kg)
                     </label>
                     <input
                       type="number"
                       value={formData.weight}
                       onChange={(e) => updateFormData("weight", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                       placeholder="75"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       VMA (km/h)
                     </label>
                     <input
@@ -698,7 +753,7 @@ export default function PlayerForm() {
                       step="0.1"
                       value={formData.vma}
                       onChange={(e) => updateFormData("vma", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                       placeholder="18.5"
                     />
                   </div>
@@ -707,42 +762,42 @@ export default function PlayerForm() {
                 {/* Envergure - only for goalkeepers */}
                 {(formData.mainPosition === "GB" || formData.secondaryPosition === "GB") && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       Envergure (cm)
                     </label>
                     <input
                       type="number"
                       value={formData.envergure}
                       onChange={(e) => updateFormData("envergure", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                       placeholder="193"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white/80 mb-2">
                     Lien à partager
                   </label>
                   <input
                     type="url"
                     value={formData.shareLink}
                     onChange={(e) => updateFormData("shareLink", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                     placeholder="Vidéo, portfolio..."
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-white/80">
                       Qualités
                     </label>
                     {formData.qualities.length < 6 && (
                       <button
                         type="button"
                         onClick={addQuality}
-                        className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1"
+                        className="text-[#FF9228] hover:text-[#FF9228] text-sm font-medium flex items-center gap-1"
                       >
                         <span className="text-lg">+</span> Ajouter
                       </button>
@@ -756,7 +811,7 @@ export default function PlayerForm() {
                           maxLength={32}
                           value={quality}
                           onChange={(e) => updateQuality(index, e.target.value)}
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                           placeholder=""
                         />
                         {formData.qualities.length > 1 && (
@@ -775,7 +830,7 @@ export default function PlayerForm() {
 
                 {formData.qualities.some(q => q) && (
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Aperçu des qualités :</p>
+                    <p className="text-sm font-medium text-white/80 mb-2">Aperçu des qualités :</p>
                     <div className="flex flex-wrap gap-2">
                       {formData.qualities.filter(q => q).map((q, i) => (
                         <span
@@ -790,59 +845,59 @@ export default function PlayerForm() {
                   </div>
                 )}
 
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">Contact</h3>
+                <div className="border-t border-white/10 pt-6">
+                  <h3 className="text-lg font-medium text-white mb-4">Contact</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Email *
                       </label>
                       <input
                         type="email"
                         value={formData.email}
                         onChange={(e) => updateFormData("email", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                         placeholder="votre@email.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Téléphone *
                       </label>
                       <input
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => updateFormData("phone", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                         placeholder="+33 6 12 34 56 78"
                       />
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <p className="text-sm text-gray-500 mb-3">Agent sportif (optionnel)</p>
+                    <p className="text-sm text-white/50 mb-3">Agent sportif (optionnel)</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-white/80 mb-2">
                           Email agent
                         </label>
                         <input
                           type="email"
                           value={formData.agentEmail}
                           onChange={(e) => updateFormData("agentEmail", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                           placeholder="agent@email.com"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-white/80 mb-2">
                           Téléphone agent
                         </label>
                         <input
                           type="tel"
                           value={formData.agentPhone}
                           onChange={(e) => updateFormData("agentPhone", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                           placeholder="+33 6 12 34 56 78"
                         />
                       </div>
@@ -856,26 +911,26 @@ export default function PlayerForm() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-800">Carrière</h2>
+                  <h2 className="text-xl font-bold text-white">Carrière</h2>
                   {formData.seasons.length < 5 && (
                     <button
                       type="button"
                       onClick={addSeason}
-                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                      className="px-4 py-2 bg-[#FF9228]/20 text-[#FF9228] rounded-lg text-sm font-medium hover:bg-[#FF9228]/30 transition-colors"
                     >
                       + Ajouter une saison
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">Maximum 5 saisons</p>
+                <p className="text-sm text-white/60">Maximum 5 saisons</p>
 
                 {formData.seasons.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-white/50">
                     <p>Aucune saison ajoutée</p>
                     <button
                       type="button"
                       onClick={addSeason}
-                      className="mt-2 text-purple-600 hover:underline"
+                      className="mt-2 text-[#FF9228] hover:underline"
                     >
                       Ajouter votre première saison
                     </button>
@@ -883,9 +938,14 @@ export default function PlayerForm() {
                 ) : (
                   <div className="space-y-4">
                     {formData.seasons.map((season, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div key={index} className={`border rounded-lg p-4 ${season.isCurrent ? 'border-[#FF9228] bg-[#FF9228]/10' : 'border-white/10'}`}>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="font-medium text-gray-700">Saison {index + 1}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-white/80">Saison {index + 1}</span>
+                            {season.isCurrent && (
+                              <span className="text-xs bg-[#FF9228] text-white px-2 py-0.5 rounded-full">En cours</span>
+                            )}
+                          </div>
                           <button
                             type="button"
                             onClick={() => removeSeason(index)}
@@ -894,50 +954,263 @@ export default function PlayerForm() {
                             Supprimer
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+
+                        {/* Current season checkbox */}
+                        <div className="mb-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={season.isCurrent}
+                              onChange={() => setCurrentSeason(index)}
+                              className="w-4 h-4 text-[#FF9228] rounded focus:ring-[#FF9228]/50"
+                            />
+                            <span className="text-sm text-white/80">Saison actuelle</span>
+                          </label>
+                        </div>
+
+                        {/* Half-season toggle */}
+                        <div className="mb-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={season.isSplit}
+                              onChange={(e) => updateSeason(index, "isSplit", e.target.checked)}
+                              className="w-4 h-4 text-[#FF9228] rounded focus:ring-[#FF9228]/50"
+                            />
+                            <span className="text-sm text-white/80">Demi-saison</span>
+                          </label>
+                        </div>
+
+                        {/* Year field - always visible at top */}
+                        <div className="mb-3">
                           <input
                             type="text"
                             value={season.year}
                             onChange={(e) => updateSeason(index, "year", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                             placeholder="Saison (ex: 2024/2025)"
                           />
-                          <input
-                            type="text"
-                            value={season.club}
-                            onChange={(e) => updateSeason(index, "club", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Club"
-                          />
-                          <input
-                            type="text"
-                            value={season.category}
-                            onChange={(e) => updateSeason(index, "category", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Catégorie (ex: U19)"
-                          />
-                          <input
-                            type="number"
-                            value={season.matches}
-                            onChange={(e) => updateSeason(index, "matches", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Matchs"
-                          />
-                          <input
-                            type="number"
-                            value={season.goals}
-                            onChange={(e) => updateSeason(index, "goals", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Buts"
-                          />
-                          <input
-                            type="number"
-                            value={season.assists}
-                            onChange={(e) => updateSeason(index, "assists", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Passes D."
-                          />
                         </div>
+
+                        {!season.isSplit ? (
+                          /* Full season fields */
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              value={season.club}
+                              onChange={(e) => updateSeason(index, "club", e.target.value)}
+                              className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                              placeholder="Club"
+                            />
+                            <input
+                              type="text"
+                              value={season.category}
+                              onChange={(e) => updateSeason(index, "category", e.target.value)}
+                              className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                              placeholder="Catégorie (ex: U19)"
+                            />
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={season.matches}
+                                onChange={(e) => updateSeason(index, "matches", e.target.value)}
+                                className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.matches ? 'border-red-300' : 'border-white/20'}`}
+                                placeholder="Matchs"
+                                required={!season.isCurrent}
+                              />
+                              {!season.isCurrent && <span className="absolute top-2 right-2 text-red-500 text-xs">*</span>}
+                            </div>
+                            {formData.mainPosition === "GB" ? (
+                              /* Goalkeeper stats */
+                              <input
+                                type="number"
+                                value={season.cleanSheets}
+                                onChange={(e) => updateSeason(index, "cleanSheets", e.target.value)}
+                                className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                placeholder="Clean sheets"
+                              />
+                            ) : (
+                              /* Field player stats */
+                              <>
+                                <input
+                                  type="number"
+                                  value={season.goals}
+                                  onChange={(e) => updateSeason(index, "goals", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Buts"
+                                />
+                                <input
+                                  type="number"
+                                  value={season.assists}
+                                  onChange={(e) => updateSeason(index, "assists", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Passes D."
+                                />
+                                <input
+                                  type="number"
+                                  value={season.avgPlayingTime}
+                                  onChange={(e) => updateSeason(index, "avgPlayingTime", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Temps de jeu moyen (min)"
+                                />
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          /* Split season - tabs */
+                          <div>
+                            {/* Tabs */}
+                            <div className="flex gap-2 mb-3">
+                              <button
+                                type="button"
+                                onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "first" })}
+                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${
+                                  (activeHalfTab[index] || "first") === "first"
+                                    ? "bg-[#FF9228] text-white"
+                                    : "bg-white/10 text-white/80 hover:bg-white/10"
+                                }`}
+                              >
+                                1ère moitié
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "second" })}
+                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${
+                                  (activeHalfTab[index] || "first") === "second"
+                                    ? "bg-[#FF9228] text-white"
+                                    : "bg-white/10 text-white/80 hover:bg-white/10"
+                                }`}
+                              >
+                                2ème moitié
+                              </button>
+                            </div>
+
+                            {/* Tab content */}
+                            {(activeHalfTab[index] || "first") === "first" ? (
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={season.firstHalf.club}
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "club", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Club"
+                                />
+                                <input
+                                  type="text"
+                                  value={season.firstHalf.category}
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "category", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Catégorie"
+                                />
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={season.firstHalf.matches}
+                                    onChange={(e) => updateSeasonHalf(index, "firstHalf", "matches", e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.firstHalf.matches ? 'border-red-300' : 'border-white/20'}`}
+                                    placeholder="Matchs"
+                                    required={!season.isCurrent}
+                                  />
+                                  {!season.isCurrent && <span className="absolute top-2 right-2 text-red-500 text-xs">*</span>}
+                                </div>
+                                {formData.mainPosition === "GB" ? (
+                                  <input
+                                    type="number"
+                                    value={season.firstHalf.cleanSheets}
+                                    onChange={(e) => updateSeasonHalf(index, "firstHalf", "cleanSheets", e.target.value)}
+                                    className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                    placeholder="Clean sheets"
+                                  />
+                                ) : (
+                                  <>
+                                    <input
+                                      type="number"
+                                      value={season.firstHalf.goals}
+                                      onChange={(e) => updateSeasonHalf(index, "firstHalf", "goals", e.target.value)}
+                                      className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                      placeholder="Buts"
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.firstHalf.assists}
+                                      onChange={(e) => updateSeasonHalf(index, "firstHalf", "assists", e.target.value)}
+                                      className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                      placeholder="Passes D."
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.firstHalf.avgPlayingTime}
+                                      onChange={(e) => updateSeasonHalf(index, "firstHalf", "avgPlayingTime", e.target.value)}
+                                      className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                      placeholder="Temps de jeu moyen (min)"
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={season.secondHalf.club}
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "club", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Club"
+                                />
+                                <input
+                                  type="text"
+                                  value={season.secondHalf.category}
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "category", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Catégorie"
+                                />
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={season.secondHalf.matches}
+                                    onChange={(e) => updateSeasonHalf(index, "secondHalf", "matches", e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.secondHalf.matches ? 'border-red-300' : 'border-white/20'}`}
+                                    placeholder="Matchs"
+                                    required={!season.isCurrent}
+                                  />
+                                  {!season.isCurrent && <span className="absolute top-2 right-2 text-red-500 text-xs">*</span>}
+                                </div>
+                                {formData.mainPosition === "GB" ? (
+                                  <input
+                                    type="number"
+                                    value={season.secondHalf.cleanSheets}
+                                    onChange={(e) => updateSeasonHalf(index, "secondHalf", "cleanSheets", e.target.value)}
+                                    className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                    placeholder="Clean sheets"
+                                  />
+                                ) : (
+                                  <>
+                                    <input
+                                      type="number"
+                                      value={season.secondHalf.goals}
+                                      onChange={(e) => updateSeasonHalf(index, "secondHalf", "goals", e.target.value)}
+                                      className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                      placeholder="Buts"
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.secondHalf.assists}
+                                      onChange={(e) => updateSeasonHalf(index, "secondHalf", "assists", e.target.value)}
+                                      className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                      placeholder="Passes D."
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.secondHalf.avgPlayingTime}
+                                      onChange={(e) => updateSeasonHalf(index, "secondHalf", "avgPlayingTime", e.target.value)}
+                                      className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                      placeholder="Temps de jeu moyen (min)"
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -951,22 +1224,22 @@ export default function PlayerForm() {
                 {/* Formations */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-gray-800">Formations</h2>
+                    <h2 className="text-xl font-bold text-white">Formations</h2>
                     <button
                       type="button"
                       onClick={addFormation}
-                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                      className="px-4 py-2 bg-[#FF9228]/20 text-[#FF9228] rounded-lg text-sm font-medium hover:bg-[#FF9228]/30 transition-colors"
                     >
                       + Ajouter
                     </button>
                   </div>
 
                   {formData.formations.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Aucune formation ajoutée</p>
+                    <p className="text-white/50 text-sm">Aucune formation ajoutée</p>
                   ) : (
                     <div className="space-y-3">
                       {formData.formations.map((formation, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                        <div key={index} className="border border-white/10 rounded-lg p-3">
                           <div className="flex justify-end mb-2">
                             <button
                               type="button"
@@ -981,23 +1254,30 @@ export default function PlayerForm() {
                               type="text"
                               value={formation.year}
                               onChange={(e) => updateFormation(index, "year", e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                               placeholder="Année ou période"
                             />
-                            <input
-                              type="text"
-                              value={formation.title}
-                              onChange={(e) => updateFormation(index, "title", e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                              placeholder="Titre (ex: Sélection régionale AURA)"
-                            />
-                            <textarea
-                              value={formation.details}
-                              onChange={(e) => updateFormation(index, "details", e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
-                              placeholder="Détails (optionnel)"
-                              rows={2}
-                            />
+                            <div>
+                              <input
+                                type="text"
+                                maxLength={1000}
+                                value={formation.title}
+                                onChange={(e) => updateFormation(index, "title", e.target.value)}
+                                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                placeholder="Titre / Structure"
+                              />
+                            </div>
+                            <div>
+                              <textarea
+                                maxLength={1000}
+                                value={formation.details}
+                                onChange={(e) => updateFormation(index, "details", e.target.value)}
+                                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40 resize-none"
+                                placeholder="Détails (optionnel)"
+                                rows={2}
+                              />
+                              <p className="text-white/40 text-xs mt-1 text-right">{formation.details?.length || 0}/1000</p>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1008,27 +1288,28 @@ export default function PlayerForm() {
                 {/* Trials */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-gray-800">Essais / Marques d&apos;intérêt</h2>
+                    <h2 className="text-xl font-bold text-white">Essais / Marques d&apos;intérêt</h2>
                     <button
                       type="button"
                       onClick={addTrial}
-                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                      className="px-4 py-2 bg-[#FF9228]/20 text-[#FF9228] rounded-lg text-sm font-medium hover:bg-[#FF9228]/30 transition-colors"
                     >
                       + Ajouter
                     </button>
                   </div>
 
                   {formData.trials.length === 0 ? (
-                    <p className="text-gray-500 text-sm">Aucun essai ajouté</p>
+                    <p className="text-white/50 text-sm">Aucun essai ajouté</p>
                   ) : (
                     <div className="space-y-3">
                       {formData.trials.map((trial, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <input
                             type="text"
+                            maxLength={200}
                             value={trial.club}
                             onChange={(e) => updateTrial(index, "club", e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                             placeholder="Club"
                           />
                           <input
@@ -1036,7 +1317,7 @@ export default function PlayerForm() {
                             maxLength={4}
                             value={trial.year}
                             onChange={(e) => updateTrial(index, "year", e.target.value)}
-                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-24 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                             placeholder="Année"
                           />
                           <button
@@ -1054,13 +1335,13 @@ export default function PlayerForm() {
               </div>
             )}
 
-            {/* Step 6: Contact */}
+            {/* Step 6: Finalisation */}
             {currentStep === 6 && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-gray-800">Contact</h2>
+                <h2 className="text-xl font-bold text-white">Finalisation</h2>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-white/80 mb-2">
                     Couleur du CV *
                   </label>
                   <div className="flex gap-3 flex-wrap">
@@ -1071,7 +1352,7 @@ export default function PlayerForm() {
                         onClick={() => updateFormData("cvColor", color.value)}
                         className={`w-10 h-10 rounded-full border-4 transition-all ${
                           formData.cvColor === color.value
-                            ? "border-gray-800 scale-110"
+                            ? "border-white scale-110"
                             : "border-transparent hover:scale-105"
                         }`}
                         style={{ backgroundColor: color.value }}
@@ -1081,101 +1362,14 @@ export default function PlayerForm() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => updateFormData("email", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="votre@email.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Téléphone *
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => updateFormData("phone", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="+33 6 12 34 56 78"
-                    />
-                  </div>
-                </div>
-
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">Agent sportif (optionnel)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email agent
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.agentEmail}
-                        onChange={(e) => updateFormData("agentEmail", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="agent@email.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Téléphone agent
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.agentPhone}
-                        onChange={(e) => updateFormData("agentPhone", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="+33 6 12 34 56 78"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">Liens (optionnels)</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Lien vidéo sportive
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.videoUrl}
-                        onChange={(e) => updateFormData("videoUrl", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="https://youtube.com/..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Profil Transfermarkt
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.transfermarktUrl}
-                        onChange={(e) => updateFormData("transfermarktUrl", e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="https://transfermarkt.fr/..."
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t pt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes, commentaires (optionnel)
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    Notes, commentaires
                   </label>
                   <textarea
                     value={formData.notes}
                     onChange={(e) => updateFormData("notes", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent resize-none"
                     placeholder="Informations complémentaires, situation particulière, objectifs..."
                     rows={4}
                   />
@@ -1184,15 +1378,15 @@ export default function PlayerForm() {
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-6 border-t">
+            <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
               <button
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`px-6 py-3 rounded-full font-medium transition-all ${
                   currentStep === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-white/10 text-white/40 cursor-not-allowed"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >
                 Précédent
@@ -1202,14 +1396,14 @@ export default function PlayerForm() {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full font-medium hover:opacity-90 transition-all"
+                  className="px-6 py-3 bg-[#FF9228] text-white rounded-full font-medium hover:bg-[#FF9228]/90 transition-all"
                 >
                   Suivant
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full font-medium hover:opacity-90 transition-all"
+                  className="px-8 py-3 bg-[#FF9228] text-white rounded-full font-medium hover:bg-[#FF9228]/90 transition-all"
                 >
                   Soumettre mon CV
                 </button>
@@ -1221,13 +1415,13 @@ export default function PlayerForm() {
 
       {/* Nationality Modal */}
       {isNationalityModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800">Sélectionner une nationalité</h3>
+              <h3 className="text-xl font-bold text-white">Sélectionner une nationalité</h3>
               <button
                 onClick={() => setIsNationalityModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-white/50 hover:text-white/80 text-2xl"
               >
                 ×
               </button>
@@ -1243,8 +1437,8 @@ export default function PlayerForm() {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
                     formData.nationalities[editingNationalityIndex] === nation.code
-                      ? "bg-purple-100 text-purple-700"
-                      : "hover:bg-gray-100"
+                      ? "bg-[#FF9228]/20 text-[#FF9228]"
+                      : "text-white hover:bg-white/10"
                   }`}
                 >
                   <span className="font-medium">{nation.name}</span>
