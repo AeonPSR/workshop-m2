@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -365,11 +365,11 @@ export default function PlayerForm() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               {STEPS.map((step, index) => (
-                <div key={step.id} className="flex items-center">
+                <React.Fragment key={step.id}>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(step.id)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${
                       step.id <= currentStep
                         ? "bg-[#FF9228] text-white"
                         : "bg-white/10 text-white/50 hover:bg-white/20"
@@ -379,12 +379,12 @@ export default function PlayerForm() {
                   </button>
                   {index < STEPS.length - 1 && (
                     <div
-                      className={`w-8 md:w-16 h-1 mx-1 ${
+                      className={`flex-1 h-1 mx-2 ${
                         step.id < currentStep ? "bg-[#FF9228]" : "bg-white/10"
                       }`}
                     />
-                )}
-                </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
             <p className="text-center text-sm text-white/60 font-medium">
@@ -1257,20 +1257,27 @@ export default function PlayerForm() {
                               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                               placeholder="Année ou période"
                             />
-                            <input
-                              type="text"
-                              value={formation.title}
-                              onChange={(e) => updateFormation(index, "title", e.target.value)}
-                              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
-                              placeholder="Titre (ex: Sélection régionale AURA)"
-                            />
-                            <textarea
-                              value={formation.details}
-                              onChange={(e) => updateFormation(index, "details", e.target.value)}
-                              className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40 resize-none"
-                              placeholder="Détails (optionnel)"
-                              rows={2}
-                            />
+                            <div>
+                              <input
+                                type="text"
+                                maxLength={1000}
+                                value={formation.title}
+                                onChange={(e) => updateFormation(index, "title", e.target.value)}
+                                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                placeholder="Titre / Structure"
+                              />
+                            </div>
+                            <div>
+                              <textarea
+                                maxLength={1000}
+                                value={formation.details}
+                                onChange={(e) => updateFormation(index, "details", e.target.value)}
+                                className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40 resize-none"
+                                placeholder="Détails (optionnel)"
+                                rows={2}
+                              />
+                              <p className="text-white/40 text-xs mt-1 text-right">{formation.details?.length || 0}/1000</p>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1299,6 +1306,7 @@ export default function PlayerForm() {
                         <div key={index} className="flex items-center gap-2">
                           <input
                             type="text"
+                            maxLength={200}
                             value={trial.club}
                             onChange={(e) => updateTrial(index, "club", e.target.value)}
                             className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
@@ -1309,7 +1317,7 @@ export default function PlayerForm() {
                             maxLength={4}
                             value={trial.year}
                             onChange={(e) => updateTrial(index, "year", e.target.value)}
-                            className="w-20 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                            className="w-24 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                             placeholder="Année"
                           />
                           <button
@@ -1327,10 +1335,10 @@ export default function PlayerForm() {
               </div>
             )}
 
-            {/* Step 6: Contact */}
+            {/* Step 6: Finalisation */}
             {currentStep === 6 && (
               <div className="space-y-6">
-                <h2 className="text-xl font-bold text-white">Contact</h2>
+                <h2 className="text-xl font-bold text-white">Finalisation</h2>
 
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
@@ -1344,7 +1352,7 @@ export default function PlayerForm() {
                         onClick={() => updateFormData("cvColor", color.value)}
                         className={`w-10 h-10 rounded-full border-4 transition-all ${
                           formData.cvColor === color.value
-                            ? "border-gray-800 scale-110"
+                            ? "border-white scale-110"
                             : "border-transparent hover:scale-105"
                         }`}
                         style={{ backgroundColor: color.value }}
@@ -1354,96 +1362,9 @@ export default function PlayerForm() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => updateFormData("email", e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                      placeholder="votre@email.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
-                      Téléphone *
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => updateFormData("phone", e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                      placeholder="+33 6 12 34 56 78"
-                    />
-                  </div>
-                </div>
-
-                <div className="border-t border-white/10 pt-6">
-                  <h3 className="text-lg font-medium text-white mb-4">Agent sportif (optionnel)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Email agent
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.agentEmail}
-                        onChange={(e) => updateFormData("agentEmail", e.target.value)}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                        placeholder="agent@email.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Téléphone agent
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.agentPhone}
-                        onChange={(e) => updateFormData("agentPhone", e.target.value)}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                        placeholder="+33 6 12 34 56 78"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-white/10 pt-6">
-                  <h3 className="text-lg font-medium text-white mb-4">Liens (optionnels)</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Lien vidéo sportive
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.videoUrl}
-                        onChange={(e) => updateFormData("videoUrl", e.target.value)}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                        placeholder="https://youtube.com/..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Profil Transfermarkt
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.transfermarktUrl}
-                        onChange={(e) => updateFormData("transfermarktUrl", e.target.value)}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                        placeholder="https://transfermarkt.fr/..."
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-white/10 pt-6">
+                <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
-                    Notes, commentaires (optionnel)
+                    Notes, commentaires
                   </label>
                   <textarea
                     value={formData.notes}
@@ -1475,14 +1396,14 @@ export default function PlayerForm() {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-6 py-3 bg-gradient-to-r from-[#FF9228] to-[#FF9228]/80 text-white rounded-full font-medium hover:opacity-90 transition-all"
+                  className="px-6 py-3 bg-[#FF9228] text-white rounded-full font-medium hover:bg-[#FF9228]/90 transition-all"
                 >
                   Suivant
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-gradient-to-r from-[#FF9228] to-[#FF9228]/80 text-white rounded-full font-medium hover:opacity-90 transition-all"
+                  className="px-8 py-3 bg-[#FF9228] text-white rounded-full font-medium hover:bg-[#FF9228]/90 transition-all"
                 >
                   Soumettre mon CV
                 </button>
