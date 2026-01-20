@@ -161,14 +161,38 @@ export default function PlayerForm() {
     phone: "",
     cvColor: "#1E5EFF",
     
-    // Step 4 - Career (simplified for now)
+    // Step 4 - Career
     seasons: [] as Array<{
       year: string;
+      isSplit: boolean;
+      isCurrent: boolean;
+      // Full season data
       club: string;
       category: string;
       matches: string;
       goals: string;
       assists: string;
+      cleanSheets: string;
+      avgPlayingTime: string;
+      // Split season data
+      firstHalf: {
+        club: string;
+        category: string;
+        matches: string;
+        goals: string;
+        assists: string;
+        cleanSheets: string;
+        avgPlayingTime: string;
+      };
+      secondHalf: {
+        club: string;
+        category: string;
+        matches: string;
+        goals: string;
+        assists: string;
+        cleanSheets: string;
+        avgPlayingTime: string;
+      };
     }>,
     
     // Step 5 - Formation & Trials
@@ -192,6 +216,7 @@ export default function PlayerForm() {
 
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
+  const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
 
   const updateFormData = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -245,14 +270,44 @@ export default function PlayerForm() {
     if (formData.seasons.length < 5) {
       updateFormData("seasons", [
         ...formData.seasons,
-        { year: "", club: "", category: "", matches: "", goals: "", assists: "" }
+        {
+          year: "",
+          isSplit: false,
+          isCurrent: false,
+          club: "",
+          category: "",
+          matches: "",
+          goals: "",
+          assists: "",
+          cleanSheets: "",
+          avgPlayingTime: "",
+          firstHalf: { club: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
+          secondHalf: { club: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+        }
       ]);
     }
   };
 
-  const updateSeason = (index: number, field: string, value: string) => {
+  const updateSeason = (index: number, field: string, value: string | boolean) => {
     const newSeasons = [...formData.seasons];
     newSeasons[index] = { ...newSeasons[index], [field]: value };
+    updateFormData("seasons", newSeasons);
+  };
+
+  const updateSeasonHalf = (index: number, half: "firstHalf" | "secondHalf", field: string, value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[index] = {
+      ...newSeasons[index],
+      [half]: { ...newSeasons[index][half], [field]: value }
+    };
+    updateFormData("seasons", newSeasons);
+  };
+
+  const setCurrentSeason = (index: number) => {
+    const newSeasons = formData.seasons.map((season, i) => ({
+      ...season,
+      isCurrent: i === index
+    }));
     updateFormData("seasons", newSeasons);
   };
 
@@ -883,9 +938,14 @@ export default function PlayerForm() {
                 ) : (
                   <div className="space-y-4">
                     {formData.seasons.map((season, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                      <div key={index} className={`border rounded-lg p-4 ${season.isCurrent ? 'border-purple-400 bg-purple-50' : 'border-gray-200'}`}>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="font-medium text-gray-700">Saison {index + 1}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-gray-700">Saison {index + 1}</span>
+                            {season.isCurrent && (
+                              <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">En cours</span>
+                            )}
+                          </div>
                           <button
                             type="button"
                             onClick={() => removeSeason(index)}
@@ -894,50 +954,263 @@ export default function PlayerForm() {
                             Supprimer
                           </button>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+
+                        {/* Current season checkbox */}
+                        <div className="mb-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={season.isCurrent}
+                              onChange={() => setCurrentSeason(index)}
+                              className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                            />
+                            <span className="text-sm text-gray-700">Saison actuelle</span>
+                          </label>
+                        </div>
+
+                        {/* Half-season toggle */}
+                        <div className="mb-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={season.isSplit}
+                              onChange={(e) => updateSeason(index, "isSplit", e.target.checked)}
+                              className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                            />
+                            <span className="text-sm text-gray-700">Demi-saison</span>
+                          </label>
+                        </div>
+
+                        {/* Year field - always visible at top */}
+                        <div className="mb-3">
                           <input
                             type="text"
                             value={season.year}
                             onChange={(e) => updateSeason(index, "year", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                             placeholder="Saison (ex: 2024/2025)"
                           />
-                          <input
-                            type="text"
-                            value={season.club}
-                            onChange={(e) => updateSeason(index, "club", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Club"
-                          />
-                          <input
-                            type="text"
-                            value={season.category}
-                            onChange={(e) => updateSeason(index, "category", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Catégorie (ex: U19)"
-                          />
-                          <input
-                            type="number"
-                            value={season.matches}
-                            onChange={(e) => updateSeason(index, "matches", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Matchs"
-                          />
-                          <input
-                            type="number"
-                            value={season.goals}
-                            onChange={(e) => updateSeason(index, "goals", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Buts"
-                          />
-                          <input
-                            type="number"
-                            value={season.assists}
-                            onChange={(e) => updateSeason(index, "assists", e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                            placeholder="Passes D."
-                          />
                         </div>
+
+                        {!season.isSplit ? (
+                          /* Full season fields */
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              value={season.club}
+                              onChange={(e) => updateSeason(index, "club", e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              placeholder="Club"
+                            />
+                            <input
+                              type="text"
+                              value={season.category}
+                              onChange={(e) => updateSeason(index, "category", e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              placeholder="Catégorie (ex: U19)"
+                            />
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={season.matches}
+                                onChange={(e) => updateSeason(index, "matches", e.target.value)}
+                                className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.matches ? 'border-red-300' : 'border-gray-300'}`}
+                                placeholder="Matchs"
+                                required={!season.isCurrent}
+                              />
+                              {!season.isCurrent && <span className="absolute top-2 right-2 text-red-500 text-xs">*</span>}
+                            </div>
+                            {formData.position === "GB" ? (
+                              /* Goalkeeper stats */
+                              <input
+                                type="number"
+                                value={season.cleanSheets}
+                                onChange={(e) => updateSeason(index, "cleanSheets", e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                placeholder="Clean sheets"
+                              />
+                            ) : (
+                              /* Field player stats */
+                              <>
+                                <input
+                                  type="number"
+                                  value={season.goals}
+                                  onChange={(e) => updateSeason(index, "goals", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Buts"
+                                />
+                                <input
+                                  type="number"
+                                  value={season.assists}
+                                  onChange={(e) => updateSeason(index, "assists", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Passes D."
+                                />
+                                <input
+                                  type="number"
+                                  value={season.avgPlayingTime}
+                                  onChange={(e) => updateSeason(index, "avgPlayingTime", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Temps de jeu moyen (min)"
+                                />
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          /* Split season - tabs */
+                          <div>
+                            {/* Tabs */}
+                            <div className="flex gap-2 mb-3">
+                              <button
+                                type="button"
+                                onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "first" })}
+                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${
+                                  (activeHalfTab[index] || "first") === "first"
+                                    ? "bg-purple-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                1ère moitié
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "second" })}
+                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${
+                                  (activeHalfTab[index] || "first") === "second"
+                                    ? "bg-purple-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                              >
+                                2ème moitié
+                              </button>
+                            </div>
+
+                            {/* Tab content */}
+                            {(activeHalfTab[index] || "first") === "first" ? (
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={season.firstHalf.club}
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "club", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Club"
+                                />
+                                <input
+                                  type="text"
+                                  value={season.firstHalf.category}
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "category", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Catégorie"
+                                />
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={season.firstHalf.matches}
+                                    onChange={(e) => updateSeasonHalf(index, "firstHalf", "matches", e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.firstHalf.matches ? 'border-red-300' : 'border-gray-300'}`}
+                                    placeholder="Matchs"
+                                    required={!season.isCurrent}
+                                  />
+                                  {!season.isCurrent && <span className="absolute top-2 right-2 text-red-500 text-xs">*</span>}
+                                </div>
+                                {formData.position === "GB" ? (
+                                  <input
+                                    type="number"
+                                    value={season.firstHalf.cleanSheets}
+                                    onChange={(e) => updateSeasonHalf(index, "firstHalf", "cleanSheets", e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    placeholder="Clean sheets"
+                                  />
+                                ) : (
+                                  <>
+                                    <input
+                                      type="number"
+                                      value={season.firstHalf.goals}
+                                      onChange={(e) => updateSeasonHalf(index, "firstHalf", "goals", e.target.value)}
+                                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                      placeholder="Buts"
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.firstHalf.assists}
+                                      onChange={(e) => updateSeasonHalf(index, "firstHalf", "assists", e.target.value)}
+                                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                      placeholder="Passes D."
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.firstHalf.avgPlayingTime}
+                                      onChange={(e) => updateSeasonHalf(index, "firstHalf", "avgPlayingTime", e.target.value)}
+                                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                      placeholder="Temps de jeu moyen (min)"
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-3">
+                                <input
+                                  type="text"
+                                  value={season.secondHalf.club}
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "club", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Club"
+                                />
+                                <input
+                                  type="text"
+                                  value={season.secondHalf.category}
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "category", e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                  placeholder="Catégorie"
+                                />
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    value={season.secondHalf.matches}
+                                    onChange={(e) => updateSeasonHalf(index, "secondHalf", "matches", e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.secondHalf.matches ? 'border-red-300' : 'border-gray-300'}`}
+                                    placeholder="Matchs"
+                                    required={!season.isCurrent}
+                                  />
+                                  {!season.isCurrent && <span className="absolute top-2 right-2 text-red-500 text-xs">*</span>}
+                                </div>
+                                {formData.position === "GB" ? (
+                                  <input
+                                    type="number"
+                                    value={season.secondHalf.cleanSheets}
+                                    onChange={(e) => updateSeasonHalf(index, "secondHalf", "cleanSheets", e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                    placeholder="Clean sheets"
+                                  />
+                                ) : (
+                                  <>
+                                    <input
+                                      type="number"
+                                      value={season.secondHalf.goals}
+                                      onChange={(e) => updateSeasonHalf(index, "secondHalf", "goals", e.target.value)}
+                                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                      placeholder="Buts"
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.secondHalf.assists}
+                                      onChange={(e) => updateSeasonHalf(index, "secondHalf", "assists", e.target.value)}
+                                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                      placeholder="Passes D."
+                                    />
+                                    <input
+                                      type="number"
+                                      value={season.secondHalf.avgPlayingTime}
+                                      onChange={(e) => updateSeasonHalf(index, "secondHalf", "avgPlayingTime", e.target.value)}
+                                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                      placeholder="Temps de jeu moyen (min)"
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
