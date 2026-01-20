@@ -88,6 +88,7 @@ const NATIONALITIES = [
 ];
 
 const POSITIONS_433 = [
+  { value: "GB", label: "Gardien de but" },
   { value: "AG", label: "Arrière gauche" },
   { value: "DCG", label: "Défenseur central gauche" },
   { value: "DCD", label: "Défenseur central droit" },
@@ -101,6 +102,7 @@ const POSITIONS_433 = [
 ];
 
 const POSITIONS_352 = [
+  { value: "GB", label: "Gardien de but" },
   { value: "DCG", label: "Défenseur central gauche" },
   { value: "DCA", label: "Défenseur central axe" },
   { value: "DCD", label: "Défenseur central droit" },
@@ -152,7 +154,11 @@ export default function PlayerForm() {
     height: "",
     weight: "",
     vma: "",
-    qualities: ["", "", "", "", "", ""],
+    envergure: "",
+    shareLink: "",
+    qualities: [""] as string[],
+    email: "",
+    phone: "",
     cvColor: "#1E5EFF",
     
     // Step 4 - Career (simplified for now)
@@ -177,8 +183,6 @@ export default function PlayerForm() {
     }>,
     
     // Step 6 - Contact
-    email: "",
-    phone: "",
     agentEmail: "",
     agentPhone: "",
     videoUrl: "",
@@ -223,6 +227,18 @@ export default function PlayerForm() {
     const newQualities = [...formData.qualities];
     newQualities[index] = value;
     updateFormData("qualities", newQualities);
+  };
+
+  const addQuality = () => {
+    if (formData.qualities.length < 6) {
+      updateFormData("qualities", [...formData.qualities, ""]);
+    }
+  };
+
+  const removeQuality = (index: number) => {
+    if (formData.qualities.length > 1) {
+      updateFormData("qualities", formData.qualities.filter((_, i) => i !== index));
+    }
   };
 
   const addSeason = () => {
@@ -537,6 +553,80 @@ export default function PlayerForm() {
                     </select>
                   </div>
                 )}
+
+                {/* Pitch Visualization */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Visualisation
+                  </label>
+                  <div className="flex justify-center">
+                    <div className="relative w-64 h-80 bg-green-600 rounded-lg border-4 border-white shadow-lg overflow-hidden">
+                      {/* Field markings */}
+                      <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/50" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-2 border-white/50 rounded-full" />
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-12 border-2 border-white/50 border-t-0" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-12 border-2 border-white/50 border-b-0" />
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-5 border-2 border-white/50 border-t-0" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-5 border-2 border-white/50 border-b-0" />
+
+                      {/* 4-3-3 Formation dots */}
+                      {formData.composition === "4-3-3" && (
+                        <>
+                          {/* Goalkeeper */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "GB" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "GB" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "4%", left: "50%" }} title="Gardien de but" />
+                          {/* Defense */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "18%", left: "15%" }} title="Arrière gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "38%" }} title="Défenseur central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "62%" }} title="Défenseur central droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "18%", left: "85%" }} title="Arrière droit" />
+                          {/* Midfield */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "38%", left: "50%" }} title="Milieu défensif" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "30%" }} title="Milieu central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "70%" }} title="Milieu central droit" />
+                          {/* Attack */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AIG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AIG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "18%" }} title="Ailier gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AC" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AC" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "78%", left: "50%" }} title="Avant-centre" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "AID" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "AID" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "82%" }} title="Ailier droit" />
+                        </>
+                      )}
+
+                      {/* 3-5-2 Formation dots */}
+                      {formData.composition === "3-5-2" && (
+                        <>
+                          {/* Goalkeeper */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "GB" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "GB" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "4%", left: "50%" }} title="Gardien de but" />
+                          {/* Defense */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "25%" }} title="Défenseur central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCA" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCA" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "12%", left: "50%" }} title="Défenseur central axe" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "DCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "DCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "15%", left: "75%" }} title="Défenseur central droit" />
+                          {/* Midfield */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "PG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "PG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "40%", left: "10%" }} title="Piston gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "PD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "PD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "40%", left: "90%" }} title="Piston droit" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "32%", left: "50%" }} title="Milieu défensif" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "35%" }} title="Milieu central gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "MCD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "MCD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "50%", left: "65%" }} title="Milieu central droit" />
+                          {/* Attack */}
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "ATG" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "ATG" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "35%" }} title="Attaquant gauche" />
+                          <div className={`absolute w-4 h-4 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all ${formData.mainPosition === "ATD" ? "bg-purple-500 ring-2 ring-white scale-125" : formData.secondaryPosition === "ATD" ? "bg-purple-300 ring-2 ring-white" : "bg-white/40"}`} style={{ bottom: "75%", left: "65%" }} title="Attaquant droit" />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Legend */}
+                  <div className="flex justify-center gap-6 mt-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500 ring-2 ring-white" />
+                      <span>Principal</span>
+                    </div>
+                    {formData.secondaryPosition && formData.secondaryPosition !== "_show" && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-purple-300 ring-2 ring-white" />
+                        <span>Secondaire</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -614,23 +704,70 @@ export default function PlayerForm() {
                   </div>
                 </div>
 
+                {/* Envergure - only for goalkeepers */}
+                {(formData.mainPosition === "GB" || formData.secondaryPosition === "GB") && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Envergure (cm)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.envergure}
+                      onChange={(e) => updateFormData("envergure", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="193"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Qualités sportives (6 max, 24 caractères chacune)
+                    Lien à partager
                   </label>
+                  <input
+                    type="url"
+                    value={formData.shareLink}
+                    onChange={(e) => updateFormData("shareLink", e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Vidéo, portfolio..."
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Qualités
+                    </label>
+                    {formData.qualities.length < 6 && (
+                      <button
+                        type="button"
+                        onClick={addQuality}
+                        className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1"
+                      >
+                        <span className="text-lg">+</span> Ajouter
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-2">
                     {formData.qualities.map((quality, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500 w-6">{index + 1}.</span>
                         <input
                           type="text"
-                          maxLength={24}
+                          maxLength={32}
                           value={quality}
                           onChange={(e) => updateQuality(index, e.target.value)}
                           className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder={index === 0 ? "Ex: Vitesse" : "Optionnel"}
+                          placeholder=""
                         />
-                        <span className="text-xs text-gray-400 w-12">{quality.length}/24</span>
+                        {formData.qualities.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeQuality(index)}
+                            className="text-red-500 hover:text-red-700 p-2"
+                          >
+                            ×
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -652,6 +789,66 @@ export default function PlayerForm() {
                     </div>
                   </div>
                 )}
+
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Contact</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => updateFormData("email", e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="votre@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Téléphone *
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => updateFormData("phone", e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="+33 6 12 34 56 78"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-500 mb-3">Agent sportif (optionnel)</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email agent
+                        </label>
+                        <input
+                          type="email"
+                          value={formData.agentEmail}
+                          onChange={(e) => updateFormData("agentEmail", e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="agent@email.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Téléphone agent
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.agentPhone}
+                          onChange={(e) => updateFormData("agentPhone", e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="+33 6 12 34 56 78"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
