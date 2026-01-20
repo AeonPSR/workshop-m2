@@ -17,4 +17,14 @@ db.exec(`
   );
 `);
 
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS logo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    initials TEXT,
+    image TEXT
+  );
+`);
+
 export default db;

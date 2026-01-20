@@ -16,11 +16,13 @@
     "@prisma/adapter-libsql": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@tailwindcss/postcss": "^4.1.18",
+    "lucide-react": "^0.562.0",
     "next": "^16.1.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "swiper": "^12.0.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
