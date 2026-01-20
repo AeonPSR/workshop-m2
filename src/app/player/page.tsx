@@ -709,12 +709,12 @@ export default function PlayerForm() {
                     <select
                       value={formData.preferredFoot}
                       onChange={(e) => updateFormData("preferredFoot", e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
                     >
-                      <option value="">Sélectionner</option>
-                      <option value="Droit">Droit</option>
-                      <option value="Gauche">Gauche</option>
-                      <option value="Ambidextre">Ambidextre</option>
+                      <option value="" className="bg-[#1a1a1a]">Sélectionner</option>
+                      <option value="Droit" className="bg-[#1a1a1a]">Droit</option>
+                      <option value="Gauche" className="bg-[#1a1a1a]">Gauche</option>
+                      <option value="Ambidextre" className="bg-[#1a1a1a]">Ambidextre</option>
                     </select>
                   </div>
                 </div>
