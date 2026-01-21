@@ -37,7 +37,7 @@ export default function Header() {
           Accueil
         </Link>
         <Link
-          href="/staff"
+          href="/staff/resumes"
           className="px-3 md:px-4 py-2 text-white/80 text-sm font-medium hover:text-[#FF9228] transition-all uppercase tracking-wide"
         >
           Admin
