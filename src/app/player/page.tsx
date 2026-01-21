@@ -240,7 +240,7 @@ export default function PlayerForm() {
     firstName: "Kylian",
     lastName: "Mbappé",
     photo: null as File | null,
-    photoPreview: "",
+    photoPreview: "/DEMO-mbappe.jpg", // ⚠️ DEMO - Image in public folder
     composition: "4-3-3" as "4-3-3" | "3-5-2",
     mainPosition: "AIG",
     secondaryPosition: "AC",
@@ -251,7 +251,7 @@ export default function PlayerForm() {
     weight: "73",
     vma: "22.5",
     envergure: "180",
-    shareLink: "",
+    shareLink: "https://www.youtube.com/watch?v=GYiyIacyTUc", // ⚠️ DEMO
     qualities: ["Vitesse", "Dribble", "Finition"] as string[],
     email: "kylian.mbappe@example.com",
     phone: "+33 6 12 34 56 78",
