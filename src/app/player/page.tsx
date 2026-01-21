@@ -184,8 +184,7 @@ export default function PlayerForm() {
         goals: string;
         assists: string;
         cleanSheets: string;
-        avgPlayingTime: string;
-      };
+        avgPlayingTime: string;};
       secondHalf: {
         club: string;
         division: string;
@@ -259,18 +258,41 @@ export default function PlayerForm() {
       seasons: formData.seasons.map(s => ({
         duration: s.year,
         current_season: s.isCurrent,
-        clubSeasons: [
-          {
-            name: s.club,
-            category: s.category,
-            matchs: Number(s.matches) || 0,
-            goals: Number(s.goals) || 0,
-            assists: Number(s.assists) || 0,
-            average_playing_time: Number(s.avgPlayingTime) || 0,
-          },
-        ],
+        is_split: s.isSplit ? true : false,
+        clubSeasons: s.isSplit 
+          ? [
+              {
+                name: s.firstHalf.club,
+                category: s.firstHalf.category,
+                matchs: Number(s.firstHalf.matches) || 0,
+                goals: Number(s.firstHalf.goals) || 0,
+                assists: Number(s.firstHalf.assists) || 0,
+                average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
+              },
+              {
+                name: s.secondHalf.club,
+                category: s.secondHalf.category,
+                matchs: Number(s.secondHalf.matches) || 0,
+                goals: Number(s.secondHalf.goals) || 0,
+                assists: Number(s.secondHalf.assists) || 0,
+                average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
+              }
+            ]
+          : [
+              {
+                name: s.club,
+                category: s.category,
+                matchs: Number(s.matches) || 0,
+                goals: Number(s.goals) || 0,
+                assists: Number(s.assists) || 0,
+                average_playing_time: Number(s.avgPlayingTime) || 0,
+              }
+            ]
       })),
-      formations: formData.formations.map(f => ({
+
+
+    
+  formations: formData.formations.map(f => ({
         duration: f.year,
         title: f.title,
         details: f.details,

@@ -266,45 +266,64 @@ export default function PlayerForm() {
       cvColor: resume.cv_color ?? "#1E5EFF",
 
       // Step 4 - Career
-      seasons: resume.seasons?.map((s: any) => {
-        const club = s.clubSeasons?.[0] ?? {};
+seasons: resume.seasons?.map((s: any) => {
+  if (s.clubSeasons?.length === 2) {
+    // Split season
+    return {
+      year: s.duration ?? "",
+      isSplit: true,
+      isCurrent: s.current_season ?? false,
+      firstHalf: {
+        club: s.clubSeasons[0].name ?? "",
+        division: "",
+        category: s.clubSeasons[0].category ?? "",
+        matches: s.clubSeasons[0].matchs?.toString() ?? "",
+        goals: s.clubSeasons[0].goals?.toString() ?? "",
+        assists: s.clubSeasons[0].assists?.toString() ?? "",
+        cleanSheets: "",
+        avgPlayingTime: s.clubSeasons[0].average_playing_time?.toString() ?? ""
+      },
+      secondHalf: {
+        club: s.clubSeasons[1].name ?? "",
+        division: "",
+        category: s.clubSeasons[1].category ?? "",
+        matches: s.clubSeasons[1].matchs?.toString() ?? "",
+        goals: s.clubSeasons[1].goals?.toString() ?? "",
+        assists: s.clubSeasons[1].assists?.toString() ?? "",
+        cleanSheets: "",
+        avgPlayingTime: s.clubSeasons[1].average_playing_time?.toString() ?? ""
+      },
+      // Full season fields empty
+      club: "",
+      division: "",
+      category: "",
+      matches: "",
+      goals: "",
+      assists: "",
+      cleanSheets: "",
+      avgPlayingTime: ""
+    };
+  } else {
+    // Full season
+    const club = s.clubSeasons?.[0] ?? {};
+    return {
+      year: s.duration ?? "",
+      isSplit: false,
+      isCurrent: s.current_season ?? false,
+      club: club.name ?? "",
+      division: "",
+      category: club.category ?? "",
+      matches: club.matchs?.toString() ?? "",
+      goals: club.goals?.toString() ?? "",
+      assists: club.assists?.toString() ?? "",
+      cleanSheets: "",
+      avgPlayingTime: club.average_playing_time?.toString() ?? "",
+      firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
+      secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+    };
+  }
+}) ?? [],
 
-        return {
-          year: s.duration ?? "",
-          isSplit: false,
-          isCurrent: s.current_season ?? false,
-
-          club: club.name ?? "",
-          division: "",
-          category: club.category ?? "",
-          matches: club.matchs?.toString() ?? "",
-          goals: club.goals?.toString() ?? "",
-          assists: club.assists?.toString() ?? "",
-          cleanSheets: "",
-          avgPlayingTime: club.average_playing_time?.toString() ?? "",
-
-          firstHalf: {
-            club: "",
-            division: "",
-            category: "",
-            matches: "",
-            goals: "",
-            assists: "",
-            cleanSheets: "",
-            avgPlayingTime: ""
-          },
-          secondHalf: {
-            club: "",
-            division: "",
-            category: "",
-            matches: "",
-            goals: "",
-            assists: "",
-            cleanSheets: "",
-            avgPlayingTime: ""
-          }
-        };
-      }) ?? [],
 
       // Step 5 - Formations & Trials
       formations: resume.formations?.map((f: any) => ({
@@ -339,12 +358,12 @@ export default function PlayerForm() {
     if (!id) return;
 
     const fetchResume = async () => {
-      const res = await fetch(`http://localhost:3000/api/resumes/?id=${id}`);
+      const res = await fetch(`http://localhost:3000/api/resumes/${id}`);
       
       if (!res.ok) return;
       const data = await res.json();
       console.log("data" ,data)
-      hydrateFormData(data[4]);
+      hydrateFormData(data);
     };
 
     fetchResume();

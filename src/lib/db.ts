@@ -20,7 +20,6 @@ db.exec(`
   );
 `);
 
-
 db.exec(`
   CREATE TABLE IF NOT EXISTS logo (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,9 +89,13 @@ db.exec(`
     resume_id INTEGER NOT NULL,
     duration TEXT,
     current_season BOOLEAN DEFAULT 0,
+    is_split BOOLEAN DEFAULT 0,
     FOREIGN KEY(resume_id) REFERENCES Resume(id) ON DELETE CASCADE
   );
 `);
+
+
+
 
 // Nouvelle table Club_Season
 db.exec(`
@@ -107,6 +110,7 @@ db.exec(`
     goals INTEGER DEFAULT 0,
     assists INTEGER DEFAULT 0,
     average_playing_time INTEGER DEFAULT 0,
+    half_number INT,
     badge1_id INTEGER,
     badge2_id INTEGER,
     badge3_id INTEGER,

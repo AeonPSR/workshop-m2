@@ -12,11 +12,10 @@ import {
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
+  
 ) {
-  const resumeId = Number(params.id);
-  if (isNaN(resumeId)) {
-    return NextResponse.json({ message: "Invalid resume id" }, { status: 400 });
-  }
+   const resolvedParams = await params;
+  const resumeId = resolvedParams.id
 
   try {
     const body: Resume = await req.json();
@@ -189,11 +188,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const resumeId = Number(params.id);
+  const resolvedParams = await params;
+  const resumeId = resolvedParams.id
 
-  if (isNaN(resumeId)) {
-    return NextResponse.json({ message: "Invalid resume id" }, { status: 400 });
-  }
+
 
   try {
     /* -------- Resume + PlayerData -------- */
@@ -279,7 +277,8 @@ export async function GET(
             badge2_id: c.badge2_id,
             badge3_id: c.badge3_id,
             logo_club_id: c.logo_club_id,
-            logo_division_id: c.logo_division_id
+            logo_division_id: c.logo_division_id,
+            half_number: c.half_number ,
           }));
 
         return {
@@ -287,6 +286,7 @@ export async function GET(
           resume_id: s.resume_id,
           duration: s.duration,
           current_season: Boolean(s.current_season),
+          is_split: Boolean(s.is_split), // <-- AJOUTÉ,
           clubSeasons
         };
       });

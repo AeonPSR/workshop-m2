@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "../../../lib/db";
 
+
 // --- TYPES ---
 export type PlayerData = {
   id?: number;
@@ -34,11 +35,12 @@ export type ClubSeason = {
   goals?: number;
   assists?: number;
   average_playing_time?: number;
-  badge1_id ? : number,
-  badge2_id ? : number,
-  badge3_id ? : number,
-  logo_club_id? : number,
-  logo_division_id? : number
+  badge1_id?: number;
+  badge2_id?: number;
+  badge3_id?: number;
+  logo_club_id?: number;
+  logo_division_id?: number;
+  half_number?: number | null;
 };
 
 export type Season = {
@@ -46,6 +48,7 @@ export type Season = {
   resume_id?: number;
   duration?: string;
   current_season?: boolean;
+  is_split?: boolean;
   clubSeasons?: ClubSeason[];
 };
 
@@ -65,7 +68,6 @@ export type Essai = {
 };
 
 export type Resume = {
-
   resumeId: number;
   cv_color?: string;
   isTreated: boolean;
@@ -78,7 +80,6 @@ export type Resume = {
   formations?: Formation[];
   essais?: Essai[];
 };
-
 // --- POST ---
 export async function POST(req: NextRequest) {
   try {
@@ -121,32 +122,62 @@ export async function POST(req: NextRequest) {
       const playerId = playerInfo.lastInsertRowid;
 
       const resumeStmt = db.prepare(`
-        INSERT INTO Resume (player_data_id, cv_color, composition_to_display, comments , is_treated)
+        INSERT INTO Resume (player_data_id, cv_color, composition_to_display, comments, is_treated)
         VALUES (?, ?, ?, ?, ?)
       `);
-
-      const resumeInfo = resumeStmt.run(playerId, cv_color ?? null, composition_to_display ?? null, comments ?? null, false);
+      const resumeInfo = resumeStmt.run(playerId, cv_color ?? null, composition_to_display ?? null, comments ?? null, 0);
       const resumeId = resumeInfo.lastInsertRowid;
 
-      // 3️⃣ Seasons & Club_Season
-      const seasonStmt = db.prepare(`INSERT INTO Season (resume_id, duration, current_season) VALUES (?, ?, ?)`);
-      const clubStmt = db.prepare(`INSERT INTO Club_Season (season_id, name, category, matchs, goals, assists, average_playing_time) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+      const seasonStmt = db.prepare(`
+        INSERT INTO Season (resume_id, duration, current_season, is_split)
+        VALUES (?, ?, ?, ?)
+      `);
+      const clubStmt = db.prepare(`
+        INSERT INTO Club_Season 
+        (season_id, name, category, matchs, goals, assists, average_playing_time, half_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
 
       seasons?.forEach(s => {
-        const seasonInfo = seasonStmt.run(resumeId, s.duration ?? null, s.current_season ? 1 : 0);
+        const seasonInfo = seasonStmt.run(
+          resumeId,
+          s.duration ?? null,
+          s.current_season ? 1 : 0,
+          s.is_split ? 1 : 0 // 1 = split season, 0 = full season
+        );
         const seasonId = seasonInfo.lastInsertRowid;
 
-        s.clubSeasons?.forEach(c => {
+        if (s.is_split) {
+          // Half season → exactly 2 clubSeasons required
+          if (!s.clubSeasons || s.clubSeasons.length !== 2) {
+            throw new Error("A split season must have exactly 2 clubSeasons");
+          }
+
+          clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].category ?? null,
+            s.clubSeasons[0].matchs ?? 0, s.clubSeasons[0].goals ?? 0, s.clubSeasons[0].assists ?? 0,
+            s.clubSeasons[0].average_playing_time ?? 0, 1); // first half
+
+          clubStmt.run(seasonId, s.clubSeasons[1].name ?? null, s.clubSeasons[1].category ?? null,
+            s.clubSeasons[1].matchs ?? 0, s.clubSeasons[1].goals ?? 0, s.clubSeasons[1].assists ?? 0,
+            s.clubSeasons[1].average_playing_time ?? 0, 2); // second half
+
+        } else {
+          // Full season → exactly 1 clubSeason
+          if (!s.clubSeasons || s.clubSeasons.length !== 1) {
+            throw new Error("A full season must have exactly 1 clubSeason");
+          }
+
           clubStmt.run(
             seasonId,
-            c.name ?? null,
-            c.category ?? null,
-            c.matchs ?? 0,
-            c.goals ?? 0,
-            c.assists ?? 0,
-            c.average_playing_time ?? 0
+            s.clubSeasons[0].name ?? null,
+            s.clubSeasons[0].category ?? null,
+            s.clubSeasons[0].matchs ?? 0,
+            s.clubSeasons[0].goals ?? 0,
+            s.clubSeasons[0].assists ?? 0,
+            s.clubSeasons[0].average_playing_time ?? 0,
+            null // no half
           );
-        });
+        }
       });
 
       // 4️⃣ Formations
@@ -161,11 +192,13 @@ export async function POST(req: NextRequest) {
     })();
 
     return NextResponse.json({ message: "Resume created", resumeId }, { status: 201 });
+
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ message: "Server error", error: err.message }, { status: 500 });
   }
 }
+
 
 // --- GET ---
 export async function GET(req: NextRequest) {
@@ -208,12 +241,10 @@ export async function GET(req: NextRequest) {
         email_agent: r.email_agent,
         phone_agent: r.phone_agent
       };
-
       const seasons: Season[] = db.prepare(`SELECT * FROM Season WHERE resume_id = ?`).all(r.resumeId).map((s: any) => ({
         ...s,
         clubSeasons: db.prepare(`SELECT * FROM Club_Season WHERE season_id = ?`).all(s.id) as ClubSeason[]
       }));
-
       const formations: Formation[] = db.prepare(`SELECT * FROM Formations WHERE resume_id = ?`).all(r.resumeId) as Formation[];
       const essais: Essai[] = db.prepare(`SELECT * FROM Essais WHERE resume_id = ?`).all(r.resumeId) as Essai[];
 
@@ -231,7 +262,6 @@ export async function GET(req: NextRequest) {
         essais
       };
     });
-
     return NextResponse.json(fullResumes, { status: 200 });
   } catch (err: any) {
     console.error(err);
