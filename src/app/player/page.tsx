@@ -590,9 +590,9 @@ export default function PlayerForm() {
       case 3: // Profil - PROFIL section
         return { top: '35%', left: '0%', width: '50%', height: '65%' };
       case 4: // Carrière - CARRIÈRE & STATISTIQUES section
-        return { top: '22%', left: '43%', width: '60%', height: '48%' };
+        return { top: '22%', left: '43%', width: '57%', height: '48%' };
       case 5: // Formations - QUALITÉS section
-        return { top: '70%', left: '43%', width: '60%', height: '30%' };
+        return { top: '70%', left: '43%', width: '57%', height: '30%' };
       case 6: // Contact - CONTACT section
         return { top: '0%', left: '0%', width: '0%', height: '0%' };
       default:
