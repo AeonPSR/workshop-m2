@@ -116,12 +116,12 @@ const POSITIONS_352 = [
 ];
 
 const CV_COLORS = [
-  { name: "Azure profond", value: "#1E5EFF" },
-  { name: "Terracotta", value: "#C46A4A" },
-  { name: "Olive", value: "#5B6B3A" },
-  { name: "Navy", value: "#0F2A43" },
-  { name: "Sable", value: "#D6C6A8" },
-  { name: "Bordeaux", value: "#7A1E3A" },
+  { name: "Azure profond", value: "#1E5EFF", file: "bleu" },
+  { name: "Terracotta", value: "#C46A4A", file: "orange" },
+  { name: "Olive", value: "#5B6B3A", file: "vert" },
+  { name: "Navy", value: "#0F2A43", file: "bleu fonce" },
+  { name: "Sable", value: "#D6C6A8", file: "beige" },
+  { name: "Bordeaux", value: "#7A1E3A", file: "rouge" },
 ];
 
 const STEPS = [
@@ -1513,9 +1513,9 @@ export default function PlayerForm() {
                 {/* Large CV Preview */}
                 <div className="flex justify-center">
                   <img 
-                    src="/cv-base-433.png" 
+                    src={`/Colored CV/${formData.composition === "4-3-3" ? "433" : "352"}/${formData.composition === "4-3-3" ? "433" : "352"} ${CV_COLORS.find(c => c.value === formData.cvColor)?.file || "bleu"}.png`}
                     alt="CV Preview" 
-                    className="w-32 sm:w-40 rounded-lg shadow-xl border-2 border-white/20"
+                    className="w-48 sm:w-64 rounded-lg shadow-xl border-2 border-white/20"
                   />
                 </div>
 
