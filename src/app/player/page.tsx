@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useDemoMode } from "@/context/DemoModeContext"; // ⚠️ DEMO MODE - REMOVE FOR PRODUCTION
 
 // Common nationalities (sorted alphabetically)
 const NATIONALITIES = [
@@ -223,6 +224,99 @@ export default function PlayerForm() {
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
   const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
+
+  /* ============================================================================
+     ██████╗ ███████╗███╗   ███╗ ██████╗     ███╗   ███╗ ██████╗ ██████╗ ███████╗
+     ██╔══██╗██╔════╝████╗ ████║██╔═══██╗    ████╗ ████║██╔═══██╗██╔══██╗██╔════╝
+     ██║  ██║█████╗  ██╔████╔██║██║   ██║    ██╔████╔██║██║   ██║██║  ██║█████╗  
+     ██║  ██║██╔══╝  ██║╚██╔╝██║██║   ██║    ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  
+     ██████╔╝███████╗██║ ╚═╝ ██║╚██████╔╝    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗
+     ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝     ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+     
+  ============================================================================ */
+  const { registerPrefillCallback } = useDemoMode();
+
+  const DEMO_PREFILL_DATA = {
+    firstName: "Kylian",
+    lastName: "Mbappé",
+    photo: null as File | null,
+    photoPreview: "",
+    composition: "4-3-3" as "4-3-3" | "3-5-2",
+    mainPosition: "AIG",
+    secondaryPosition: "AC",
+    nationalities: ["FR", "CM"] as string[],
+    birthDate: "1998-12-20",
+    preferredFoot: "Droit",
+    height: "178",
+    weight: "73",
+    vma: "22.5",
+    envergure: "180",
+    shareLink: "",
+    qualities: ["Vitesse", "Dribble", "Finition"] as string[],
+    email: "kylian.mbappe@example.com",
+    phone: "+33 6 12 34 56 78",
+    cvColor: "#0F2A43",
+    seasons: [
+      {
+        year: "2023-2024",
+        isSplit: false,
+        isCurrent: true,
+        club: "Paris Saint-Germain",
+        division: "Ligue 1",
+        category: "Sénior",
+        matches: "29",
+        goals: "27",
+        assists: "7",
+        cleanSheets: "0",
+        avgPlayingTime: "85",
+        comments: ["Meilleur buteur du championnat", "Capitaine de l'équipe"],
+        firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+        secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+      },
+      {
+        year: "2022-2023",
+        isSplit: false,
+        isCurrent: false,
+        club: "Paris Saint-Germain",
+        division: "Ligue 1",
+        category: "Sénior",
+        matches: "34",
+        goals: "29",
+        assists: "5",
+        cleanSheets: "0",
+        avgPlayingTime: "87",
+        comments: ["Champion de France"],
+        firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+        secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+      },
+    ],
+    formations: [
+      { year: "2013-2017", title: "Centre de Formation AS Monaco", details: "Formation complète au poste d'attaquant" },
+      { year: "2011-2013", title: "INF Clairefontaine", details: "Pôle Espoirs" },
+    ],
+    trials: [
+      { club: "Real Madrid", year: "2012" },
+      { club: "Chelsea FC", year: "2012" },
+    ],
+    agentEmail: "agent@example.com",
+    agentPhone: "+33 1 23 45 67 89",
+    videoUrl: "https://youtube.com/watch?v=example",
+    transfermarktUrl: "https://www.transfermarkt.com/kylian-mbappe/profil/spieler/342229",
+    notes: "Joueur exceptionnel avec un potentiel de classe mondiale.",
+  };
+
+  const handleDemoPrefill = () => {
+    setFormData(DEMO_PREFILL_DATA);
+    setCurrentStep(1);
+  };
+
+  useEffect(() => {
+    registerPrefillCallback(handleDemoPrefill);
+    return () => registerPrefillCallback(null);
+  }, [registerPrefillCallback]);
+  /* ============================================================================
+     END OF DEMO MODE CODE - REMOVE THIS ENTIRE SECTION FOR PRODUCTION
+  ============================================================================ */
 
 
 
@@ -1000,23 +1094,6 @@ export default function PlayerForm() {
                     ))}
                   </div>
                 </div>
-
-                {formData.qualities.some(q => q) && (
-                  <div>
-                    <p className="text-sm font-medium text-white/80 mb-2">Aperçu des qualités :</p>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.qualities.filter(q => q).map((q, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 rounded-full text-sm text-white"
-                          style={{ backgroundColor: formData.cvColor }}
-                        >
-                          {q}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 <div className="border-t border-white/10 pt-6">
                   <h3 className="text-lg font-medium text-white mb-4">Contact</h3>
