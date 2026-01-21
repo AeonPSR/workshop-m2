@@ -37,6 +37,12 @@ export default function Header() {
           Accueil
         </Link>
         <Link
+          href="/staff"
+          className="px-3 md:px-4 py-2 text-white/80 text-sm font-medium hover:text-[#FF9228] transition-all uppercase tracking-wide"
+        >
+          Admin
+        </Link>
+        <Link
           href="/player"
           className="px-4 md:px-6 py-2.5 bg-[#FF9228] text-white rounded-full text-sm font-bold hover:bg-[#FF9228]/90 transition-all uppercase tracking-wide"
         >
