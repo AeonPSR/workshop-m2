@@ -175,6 +175,7 @@ export default function PlayerForm() {
       assists: string;
       cleanSheets: string;
       avgPlayingTime: string;
+      comments: string[];
       // Split season data
       firstHalf: {
         club: string;
@@ -185,6 +186,7 @@ export default function PlayerForm() {
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
+        comments: string[];
       };
       secondHalf: {
         club: string;
@@ -195,6 +197,7 @@ export default function PlayerForm() {
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
+        comments: string[];
       };
     }>,
     
@@ -366,8 +369,9 @@ export default function PlayerForm() {
           assists: "",
           cleanSheets: "",
           avgPlayingTime: "",
-          firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
-          secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+          comments: [],
+          firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+          secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] }
         }
       ]);
     }
@@ -399,6 +403,48 @@ export default function PlayerForm() {
 
   const removeSeason = (index: number) => {
     updateFormData("seasons", formData.seasons.filter((_, i) => i !== index));
+  };
+
+  // Comment management for seasons
+  const addSeasonComment = (seasonIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    if (newSeasons[seasonIndex].comments.length < 3) {
+      newSeasons[seasonIndex].comments = [...newSeasons[seasonIndex].comments, ""];
+      updateFormData("seasons", newSeasons);
+    }
+  };
+
+  const updateSeasonComment = (seasonIndex: number, commentIndex: number, value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex].comments[commentIndex] = value;
+    updateFormData("seasons", newSeasons);
+  };
+
+  const removeSeasonComment = (seasonIndex: number, commentIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex].comments = newSeasons[seasonIndex].comments.filter((_, i) => i !== commentIndex);
+    updateFormData("seasons", newSeasons);
+  };
+
+  // Comment management for half seasons
+  const addHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf") => {
+    const newSeasons = [...formData.seasons];
+    if (newSeasons[seasonIndex][half].comments.length < 3) {
+      newSeasons[seasonIndex][half].comments = [...newSeasons[seasonIndex][half].comments, ""];
+      updateFormData("seasons", newSeasons);
+    }
+  };
+
+  const updateHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf", commentIndex: number, value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex][half].comments[commentIndex] = value;
+    updateFormData("seasons", newSeasons);
+  };
+
+  const removeHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf", commentIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex][half].comments = newSeasons[seasonIndex][half].comments.filter((_, i) => i !== commentIndex);
+    updateFormData("seasons", newSeasons);
   };
 
   const addFormation = () => {
@@ -1189,6 +1235,36 @@ export default function PlayerForm() {
                                 />
                               </>
                             )}
+                            {/* Comments section */}
+                            <div className="col-span-2 space-y-2">
+                              {season.comments.map((comment, commentIndex) => (
+                                <div key={commentIndex} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={comment}
+                                    onChange={(e) => updateSeasonComment(index, commentIndex, e.target.value)}
+                                    className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                    placeholder="Commentaire (ex: Champion, Coupe...)"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSeasonComment(index, commentIndex)}
+                                    className="text-red-500 hover:text-red-700 p-1"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                              {season.comments.length < 3 && (
+                                <button
+                                  type="button"
+                                  onClick={() => addSeasonComment(index)}
+                                  className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                >
+                                  <span className="text-lg">+</span> Ajouter un commentaire
+                                </button>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           /* Split season - tabs */
@@ -1287,6 +1363,36 @@ export default function PlayerForm() {
                                     />
                                   </>
                                 )}
+                                {/* Comments section for firstHalf */}
+                                <div className="col-span-2 space-y-2">
+                                  {season.firstHalf.comments.map((comment, commentIndex) => (
+                                    <div key={commentIndex} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => updateHalfSeasonComment(index, "firstHalf", commentIndex, e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                        placeholder="Commentaire (ex: Champion, Coupe...)"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeHalfSeasonComment(index, "firstHalf", commentIndex)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {season.firstHalf.comments.length < 3 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => addHalfSeasonComment(index, "firstHalf")}
+                                      className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                    >
+                                      <span className="text-lg">+</span> Ajouter un commentaire
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ) : (
                               <div className="grid grid-cols-2 gap-3">
@@ -1355,6 +1461,36 @@ export default function PlayerForm() {
                                     />
                                   </>
                                 )}
+                                {/* Comments section for secondHalf */}
+                                <div className="col-span-2 space-y-2">
+                                  {season.secondHalf.comments.map((comment, commentIndex) => (
+                                    <div key={commentIndex} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => updateHalfSeasonComment(index, "secondHalf", commentIndex, e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                        placeholder="Commentaire (ex: Champion, Coupe...)"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeHalfSeasonComment(index, "secondHalf", commentIndex)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {season.secondHalf.comments.length < 3 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => addHalfSeasonComment(index, "secondHalf")}
+                                      className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                    >
+                                      <span className="text-lg">+</span> Ajouter un commentaire
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
