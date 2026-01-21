@@ -168,6 +168,7 @@ export default function PlayerForm() {
       isCurrent: boolean;
       // Full season data
       club: string;
+      division: string;
       category: string;
       matches: string;
       goals: string;
@@ -177,6 +178,7 @@ export default function PlayerForm() {
       // Split season data
       firstHalf: {
         club: string;
+        division: string;
         category: string;
         matches: string;
         goals: string;
@@ -186,6 +188,7 @@ export default function PlayerForm() {
       };
       secondHalf: {
         club: string;
+        division: string;
         category: string;
         matches: string;
         goals: string;
@@ -275,14 +278,15 @@ export default function PlayerForm() {
           isSplit: false,
           isCurrent: false,
           club: "",
+          division: "",
           category: "",
           matches: "",
           goals: "",
           assists: "",
           cleanSheets: "",
           avgPlayingTime: "",
-          firstHalf: { club: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
-          secondHalf: { club: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+          firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
+          secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
         }
       ]);
     }
@@ -304,9 +308,10 @@ export default function PlayerForm() {
   };
 
   const setCurrentSeason = (index: number) => {
+    const isAlreadyCurrent = formData.seasons[index].isCurrent;
     const newSeasons = formData.seasons.map((season, i) => ({
       ...season,
-      isCurrent: i === index
+      isCurrent: i === index ? !isAlreadyCurrent : false
     }));
     updateFormData("seasons", newSeasons);
   };
@@ -354,6 +359,26 @@ export default function PlayerForm() {
 
   const getNationality = (code: string) => NATIONALITIES.find(n => n.code === code);
 
+  // CV Preview highlight areas based on current step
+  const getHighlightStyle = () => {
+    switch (currentStep) {
+      case 1: // Identité - Photo area at top left
+        return { top: '0%', left: '0%', width: '60%', height: '35%' };
+      case 2: // Poste - Field/pitch area at top right
+        return { top: '0%', left: '70%', width: '30%', height: '25%' };
+      case 3: // Profil - PROFIL section
+        return { top: '35%', left: '0%', width: '50%', height: '65%' };
+      case 4: // Carrière - CARRIÈRE & STATISTIQUES section
+        return { top: '22%', left: '43%', width: '60%', height: '48%' };
+      case 5: // Formations - QUALITÉS section
+        return { top: '70%', left: '43%', width: '60%', height: '30%' };
+      case 6: // Contact - CONTACT section
+        return { top: '0%', left: '0%', width: '0%', height: '0%' };
+      default:
+        return { top: '0%', left: '0%', width: '0%', height: '0%' };
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0a]">
       <Header />
@@ -361,35 +386,56 @@ export default function PlayerForm() {
       <main className="flex-1 py-6">
         <div className="container mx-auto px-4 max-w-2xl">
           
-          {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              {STEPS.map((step, index) => (
-                <React.Fragment key={step.id}>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(step.id)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${
-                      step.id <= currentStep
-                        ? "bg-[#FF9228] text-white"
-                        : "bg-white/10 text-white/50 hover:bg-white/20"
-                    }`}
-                  >
-                    {step.id}
-                  </button>
-                  {index < STEPS.length - 1 && (
-                    <div
-                      className={`flex-1 h-1 mx-2 ${
-                        step.id < currentStep ? "bg-[#FF9228]" : "bg-white/10"
+          {/* Progress Steps with CV Preview */}
+          <div className="mb-8 flex items-start gap-4">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                {STEPS.map((step, index) => (
+                  <React.Fragment key={step.id}>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(step.id)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${
+                        step.id <= currentStep
+                          ? "bg-[#FF9228] text-white"
+                          : "bg-white/10 text-white/50 hover:bg-white/20"
                       }`}
-                    />
-                  )}
-                </React.Fragment>
-              ))}
+                    >
+                      {step.id}
+                    </button>
+                    {index < STEPS.length - 1 && (
+                      <div
+                        className={`flex-1 h-1 mx-2 ${
+                          step.id < currentStep ? "bg-[#FF9228]" : "bg-white/10"
+                        }`}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+              <p className="text-center text-sm text-white/60 font-medium">
+                {STEPS[currentStep - 1].name}
+              </p>
             </div>
-            <p className="text-center text-sm text-white/60 font-medium">
-              {STEPS[currentStep - 1].name}
-            </p>
+
+            {/* CV Preview Thumbnail - hidden on step 6 */}
+            {currentStep !== 6 && (
+              <div className="relative w-16 sm:w-20 flex-shrink-0">
+                <img 
+                  src="/cv-base-433.png" 
+                  alt="CV Preview" 
+                  className="w-full rounded shadow-lg border border-white/20"
+                />
+                {/* Animated highlight rectangle */}
+                <div 
+                  className="absolute border-2 border-[#FF9228] rounded-sm transition-all duration-500 ease-out pointer-events-none"
+                  style={{
+                    ...getHighlightStyle(),
+                    boxShadow: '0 0 8px rgba(255, 146, 40, 0.6)'
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Form Card */}
@@ -1004,6 +1050,13 @@ export default function PlayerForm() {
                             />
                             <input
                               type="text"
+                              value={season.division}
+                              onChange={(e) => updateSeason(index, "division", e.target.value)}
+                              className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                              placeholder="Division (ex: N2)"
+                            />
+                            <input
+                              type="text"
                               value={season.category}
                               onChange={(e) => updateSeason(index, "category", e.target.value)}
                               className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
@@ -1014,7 +1067,7 @@ export default function PlayerForm() {
                                 type="number"
                                 value={season.matches}
                                 onChange={(e) => updateSeason(index, "matches", e.target.value)}
-                                className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.matches ? 'border-red-300' : 'border-white/20'}`}
+                                className={`w-full px-3 py-2 bg-white/5 border rounded-lg text-sm text-white placeholder-white/40 ${!season.isCurrent && !season.matches ? 'border-red-300' : 'border-white/20'}`}
                                 placeholder="Matchs"
                                 required={!season.isCurrent}
                               />
@@ -1097,6 +1150,13 @@ export default function PlayerForm() {
                                 />
                                 <input
                                   type="text"
+                                  value={season.firstHalf.division}
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "division", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Division (ex: N2)"
+                                />
+                                <input
+                                  type="text"
                                   value={season.firstHalf.category}
                                   onChange={(e) => updateSeasonHalf(index, "firstHalf", "category", e.target.value)}
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
@@ -1107,7 +1167,7 @@ export default function PlayerForm() {
                                     type="number"
                                     value={season.firstHalf.matches}
                                     onChange={(e) => updateSeasonHalf(index, "firstHalf", "matches", e.target.value)}
-                                    className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.firstHalf.matches ? 'border-red-300' : 'border-white/20'}`}
+                                    className={`w-full px-3 py-2 bg-white/5 border rounded-lg text-sm text-white placeholder-white/40 ${!season.isCurrent && !season.firstHalf.matches ? 'border-red-300' : 'border-white/20'}`}
                                     placeholder="Matchs"
                                     required={!season.isCurrent}
                                   />
@@ -1158,6 +1218,13 @@ export default function PlayerForm() {
                                 />
                                 <input
                                   type="text"
+                                  value={season.secondHalf.division}
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "division", e.target.value)}
+                                  className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                  placeholder="Division (ex: N2)"
+                                />
+                                <input
+                                  type="text"
                                   value={season.secondHalf.category}
                                   onChange={(e) => updateSeasonHalf(index, "secondHalf", "category", e.target.value)}
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
@@ -1168,7 +1235,7 @@ export default function PlayerForm() {
                                     type="number"
                                     value={season.secondHalf.matches}
                                     onChange={(e) => updateSeasonHalf(index, "secondHalf", "matches", e.target.value)}
-                                    className={`w-full px-3 py-2 border rounded-lg text-sm ${!season.isCurrent && !season.secondHalf.matches ? 'border-red-300' : 'border-white/20'}`}
+                                    className={`w-full px-3 py-2 bg-white/5 border rounded-lg text-sm text-white placeholder-white/40 ${!season.isCurrent && !season.secondHalf.matches ? 'border-red-300' : 'border-white/20'}`}
                                     placeholder="Matchs"
                                     required={!season.isCurrent}
                                   />
@@ -1360,6 +1427,15 @@ export default function PlayerForm() {
                       />
                     ))}
                   </div>
+                </div>
+
+                {/* Large CV Preview */}
+                <div className="flex justify-center">
+                  <img 
+                    src="/cv-base-433.png" 
+                    alt="CV Preview" 
+                    className="w-32 sm:w-40 rounded-lg shadow-xl border-2 border-white/20"
+                  />
                 </div>
 
                 <div>
