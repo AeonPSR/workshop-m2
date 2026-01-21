@@ -1,25 +1,25 @@
 import { useState } from "react";
 import { Trash2, Edit } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
-import { Logo } from "@/lib/types/logo";
-import LogoFormModal from "./LogoFormModal";
-type LogoCardProps = Logo & { onRefresh: () => void }
+import { LogoDivision } from "@/lib/types/logo_division";
+import LogoDviFormModal from "./LogoDviFormModal";
+type LogoDivCardProps = LogoDivision & { onRefresh: () => void }
 
-export default function LogoCard({ id, image, name, initials, onRefresh }: LogoCardProps) {
+export default function LogoDivCard({ id, image, name, initials, onRefresh }: LogoDivCardProps) {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
 
 
-  const handleEditLogo = async (  logo: { name: string; image: string; initials: string }
+  const handleEditLogoDiv = async (  logoDiv: { name: string; image: string; initials: string }
 ) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/logos/${id}`, {
+    const res = await fetch(`http://localhost:3000/api/logo_divisions/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(logo),
+      body: JSON.stringify(logoDiv),
     });
-    if (!res.ok) throw new Error("Erreur update logo");
+    if (!res.ok) throw new Error("Erreur update logo division");
      setEditModalOpen(false)
      onRefresh();
      console.log("Élément Modifié");
@@ -30,7 +30,7 @@ export default function LogoCard({ id, image, name, initials, onRefresh }: LogoC
 
     const handleDelete = async () => {
         try {
-            await fetch(`http://localhost:3000/api/logos/${id}`, {
+            await fetch(`http://localhost:3000/api/logo_divisions/${id}`, {
                 method: "DELETE",
             });
             setConfirmModalOpen(false);
@@ -55,7 +55,8 @@ export default function LogoCard({ id, image, name, initials, onRefresh }: LogoC
 
                 <div className="p-6 space-y-4">
                     <div className="text-center">
-                        <h3 className="text-xl font-bold text-[#ffffff] tracking-wide">{name}</h3>
+                        <h3 className="text-xl font-bold text-[#ffffff] tracking-wide">  {`${name}${initials ? ` - ${initials}` : ""}`}
+</h3>
                         <div className="w-16 h-1 bg-[#ff9228] mx-auto mt-2 rounded-full"></div>
                     </div>
 
@@ -83,16 +84,16 @@ export default function LogoCard({ id, image, name, initials, onRefresh }: LogoC
             <ConfirmModal
                 open={confirmModalOpen}
 
-                message="Êtes-vous sûr de vouloir supprimer cette logo ? Cette action est irréversible."
+                message="Êtes-vous sûr de vouloir supprimer ce logo de division ? Cette action est irréversible."
                 onConfirm={handleDelete}
                 onClose={() => setConfirmModalOpen(false)}
             />
 
-            <LogoFormModal
+            <LogoDviFormModal
   open={editModalOpen}
   onClose={() => setEditModalOpen(false)}
   initialValues={{ name, image, initials }}
-  onAddOrUpdate={handleEditLogo}
+  onAddOrUpdate={handleEditLogoDiv}
   
 />
         </>

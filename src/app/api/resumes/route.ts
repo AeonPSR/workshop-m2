@@ -1,0 +1,240 @@
+import { NextRequest, NextResponse } from "next/server";
+import db from "../../../lib/db";
+
+// --- TYPES ---
+export type PlayerData = {
+  id?: number;
+  firstname: string;
+  lastname: string;
+  nationality1?: string;
+  nationality2?: string;
+  nationality3?: string;
+  player_image?: string;
+  date_of_birth?: string;
+  preferred_foot?: string;
+  height?: number;
+  weight?: number;
+  primary_position?: string;
+  secondary_position?: string;
+  vma?: number;
+  transfermark_url?: string;
+  qualities?: string;
+  email?: string;
+  phone?: string;
+  email_agent?: string;
+  phone_agent?: string;
+};
+
+export type ClubSeason = {
+  id?: number;
+  season_id?: number;
+  name?: string;
+  category?: string;
+  matchs?: number;
+  goals?: number;
+  assists?: number;
+  average_playing_time?: number;
+  badge1_id ? : number,
+  badge2_id ? : number,
+  badge3_id ? : number,
+  logo_club_id? : number,
+  logo_division_id? : number
+};
+
+export type Season = {
+  id?: number;
+  resume_id?: number;
+  duration?: string;
+  current_season?: boolean;
+  clubSeasons?: ClubSeason[];
+};
+
+export type Formation = {
+  id?: number;
+  resume_id?: number;
+  duration?: string;
+  title?: string;
+  details?: string;
+};
+
+export type Essai = {
+  id?: number;
+  resume_id?: number;
+  club?: string;
+  year?: string;
+};
+
+export type Resume = {
+
+  resumeId: number;
+  cv_color?: string;
+  isTreated: boolean;
+  createdAt: string;
+  updatedAt: string;
+  composition_to_display?: string;
+  comments?: string;
+  playerData: PlayerData;
+  seasons?: Season[];
+  formations?: Formation[];
+  essais?: Essai[];
+};
+
+// --- POST ---
+export async function POST(req: NextRequest) {
+  try {
+    const body: Resume = await req.json();
+    const { playerData, cv_color, composition_to_display, comments, seasons, formations, essais } = body;
+
+    const resumeId = db.transaction(() => {
+      // 1️⃣ PlayerData
+      const playerStmt = db.prepare(`
+        INSERT INTO PlayerData (
+          firstname, lastname, nationality1, nationality2, nationality3,
+          player_image, date_of_birth, preferred_foot, height, weight,
+          primary_position, secondary_position, vma, transfermark_url, qualities,
+          email, phone, email_agent, phone_agent
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const playerInfo = playerStmt.run(
+        playerData.firstname,
+        playerData.lastname,
+        playerData.nationality1 ?? null,
+        playerData.nationality2 ?? null,
+        playerData.nationality3 ?? null,
+        playerData.player_image ?? null,
+        playerData.date_of_birth ?? null,
+        playerData.preferred_foot ?? null,
+        playerData.height ?? null,
+        playerData.weight ?? null,
+        playerData.primary_position ?? null,
+        playerData.secondary_position ?? null,
+        playerData.vma ?? null,
+        playerData.transfermark_url ?? null,
+        playerData.qualities ?? null,
+        playerData.email ?? null,
+        playerData.phone ?? null,
+        playerData.email_agent ?? null,
+        playerData.phone_agent ?? null
+      );
+
+      const playerId = playerInfo.lastInsertRowid;
+
+      const resumeStmt = db.prepare(`
+        INSERT INTO Resume (player_data_id, cv_color, composition_to_display, comments , is_treated)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+
+      const resumeInfo = resumeStmt.run(playerId, cv_color ?? null, composition_to_display ?? null, comments ?? null, false);
+      const resumeId = resumeInfo.lastInsertRowid;
+
+      // 3️⃣ Seasons & Club_Season
+      const seasonStmt = db.prepare(`INSERT INTO Season (resume_id, duration, current_season) VALUES (?, ?, ?)`);
+      const clubStmt = db.prepare(`INSERT INTO Club_Season (season_id, name, category, matchs, goals, assists, average_playing_time) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+
+      seasons?.forEach(s => {
+        const seasonInfo = seasonStmt.run(resumeId, s.duration ?? null, s.current_season ? 1 : 0);
+        const seasonId = seasonInfo.lastInsertRowid;
+
+        s.clubSeasons?.forEach(c => {
+          clubStmt.run(
+            seasonId,
+            c.name ?? null,
+            c.category ?? null,
+            c.matchs ?? 0,
+            c.goals ?? 0,
+            c.assists ?? 0,
+            c.average_playing_time ?? 0
+          );
+        });
+      });
+
+      // 4️⃣ Formations
+      const formationStmt = db.prepare(`INSERT INTO Formations (resume_id, duration, title, details) VALUES (?, ?, ?, ?)`);
+      formations?.forEach(f => formationStmt.run(resumeId, f.duration ?? null, f.title ?? null, f.details ?? null));
+
+      // 5️⃣ Essais
+      const essaiStmt = db.prepare(`INSERT INTO Essais (resume_id, club, year) VALUES (?, ?, ?)`);
+      essais?.forEach(e => essaiStmt.run(resumeId, e.club ?? null, e.year ?? null));
+
+      return resumeId;
+    })();
+
+    return NextResponse.json({ message: "Resume created", resumeId }, { status: 201 });
+  } catch (err: any) {
+    console.error(err);
+    return NextResponse.json({ message: "Server error", error: err.message }, { status: 500 });
+  }
+}
+
+// --- GET ---
+export async function GET(req: NextRequest) {
+  try {
+    const resumesRaw: any[] = db.prepare(`
+     SELECT 
+  r.id as resumeId,
+  r.cv_color,
+  r.composition_to_display,
+  r.comments,
+  r.created_at,
+  r.updated_at,
+  r.is_treated,
+  p.*
+  FROM Resume r
+  JOIN PlayerData p ON r.player_data_id = p.id
+  ORDER BY r.id DESC
+    `).all();
+
+    const fullResumes: Resume[] = resumesRaw.map(r => {
+      const playerData: PlayerData = {
+        id: r.id,
+        firstname: r.firstname,
+        lastname: r.lastname,
+        nationality1: r.nationality1,
+        nationality2: r.nationality2,
+        nationality3: r.nationality3,
+        player_image: r.player_image,
+        date_of_birth: r.date_of_birth,
+        preferred_foot: r.preferred_foot,
+        height: r.height,
+        weight: r.weight,
+        primary_position: r.primary_position,
+        secondary_position: r.secondary_position,
+        vma: r.vma,
+        transfermark_url: r.transfermark_url,
+        qualities: r.qualities,
+        email: r.email,
+        phone: r.phone,
+        email_agent: r.email_agent,
+        phone_agent: r.phone_agent
+      };
+
+      const seasons: Season[] = db.prepare(`SELECT * FROM Season WHERE resume_id = ?`).all(r.resumeId).map((s: any) => ({
+        ...s,
+        clubSeasons: db.prepare(`SELECT * FROM Club_Season WHERE season_id = ?`).all(s.id) as ClubSeason[]
+      }));
+
+      const formations: Formation[] = db.prepare(`SELECT * FROM Formations WHERE resume_id = ?`).all(r.resumeId) as Formation[];
+      const essais: Essai[] = db.prepare(`SELECT * FROM Essais WHERE resume_id = ?`).all(r.resumeId) as Essai[];
+
+      return {
+        resumeId: r.resumeId,
+        cv_color: r.cv_color,
+        composition_to_display: r.composition_to_display,
+        comments: r.comments,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        isTreated: r.is_treated,
+        playerData,
+        seasons,
+        formations,
+        essais
+      };
+    });
+
+    return NextResponse.json(fullResumes, { status: 200 });
+  } catch (err: any) {
+    console.error(err);
+    return NextResponse.json({ message: "Server error", error: err.message }, { status: 500 });
+  }
+}

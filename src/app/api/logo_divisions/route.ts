@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 
-// GET : Récupérer tous les badges
+// GET : Récupérer tous les division_logos
 export async function GET() {
   try {
-    const badges = db.prepare("SELECT * FROM badge ORDER BY id DESC").all();
-    return NextResponse.json(badges);
+    const divisionLogos = db.prepare("SELECT * FROM division_logo ORDER BY id DESC").all();
+    return NextResponse.json(divisionLogos);
   } catch (error) {
-    console.error("Erreur GET /api/badges:", error);
+    console.error("Erreur GET /api/division_logos:", error);
     return NextResponse.json(
-      { error: "Impossible de récupérer les badges." },
+      { error: "Impossible de récupérer les  logos des divisions " },
       { status: 500 }
     );
   }
 }
 
-// POST : Ajouter un badge
+// POST : Ajouter un division_logo
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -30,18 +30,18 @@ export async function POST(request: Request) {
     }
 
     const statement = db.prepare(
-      "INSERT INTO badge (name, initials, image) VALUES (?, ?, ?)"
+      "INSERT INTO division_logo (name, initials, image) VALUES (?, ?, ?)"
     );
     const result = statement.run(name, initials, image || "");
 
     return NextResponse.json(
-      { id: result.lastInsertRowid, message: "Badge créé avec succès" },
+      { id: result.lastInsertRowid, message: "Logo de la division créé avec succès " },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Erreur POST /api/badges:", error);
+    console.error("Erreur POST /api/division_logos:", error);
     return NextResponse.json(
-      { error: "Erreur lors de la création du badge." },
+      { error: "Erreur lors de la création du logo de la division ." },
       { status: 500 }
     );
   }

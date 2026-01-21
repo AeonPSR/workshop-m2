@@ -1,4 +1,4 @@
- export type Badge = {
+ export type LogoDivision = {
     id : number
     name: string,
     initials: string,

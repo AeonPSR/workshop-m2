@@ -2,12 +2,12 @@
 import Link from "next/link"
 import { LayoutDashboard, Award, Shield, FileText } from "lucide-react"
 
-export default function Sidebar() {
+export default function StaffSidebar() {
   const menuItems = [
     { name: "Gestion des Logos", href: "/staff/logos", icon: <LayoutDashboard size={20} /> },
     { name: "Gestion des Badges", href: "/staff/badges", icon: <Award size={20} /> },
-    { name: "Logos Divisions", href: "/divisions", icon: <Shield size={20} /> },
-    { name: "Gestion des CVs", href: "/staff/cvs", icon: <FileText size={20} /> },
+    { name: "Logos Divisions", href: "/staff/division_logos", icon: <Shield size={20} /> },
+    { name: "Gestion des CVs", href: "/staff/resumes", icon: <FileText size={20} /> },
   ]
   
   return (

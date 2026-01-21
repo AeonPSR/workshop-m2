@@ -1,4 +1,4 @@
- export type Badge = {
+ export type Logo = {
     id : number
     name: string,
     initials: string,

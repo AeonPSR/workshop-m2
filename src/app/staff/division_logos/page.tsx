@@ -1,22 +1,22 @@
 "use client"
 import { useState , useEffect } from "react"
-import { Badge } from "@/lib/types/badge";
-import BadgeCard from "@/components/staff/BadgeCard";
+import { LogoDivision } from "@/lib/types/logo_division";
+import LogoDivCard from "@/components/staff/LogoDivCard";
 import { Plus } from "lucide-react";
-import BadgeFormModal from "@/components/staff/BadgeFormModal";
+import LogoDviFormModal from "@/components/staff/LogoDviFormModal";
 export default function Page() {
-    const [badges, setBadges] = useState<Badge[]>([]);
+    const [logoDivisions, setLogoDivisions] = useState<LogoDivision[]>([]);
     const [loading, setLoading] = useState(true); // État loading
     const [error, setError] = useState<string | null>(null);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
-     const fetchBadges = async () => {
+     const fetchLogoDivisions = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/badges");
+        const res = await fetch("http://localhost:3000/api/logo_divisions");
         if (!res.ok) throw new Error("Erreur lors du fetch");
-        const data: Badge[] = await res.json();
-        setBadges(data);
+        const data: LogoDivision[] = await res.json();
+        setLogoDivisions(data);
       } catch (err: any) {
         setError("Erreur interne du serveur");
       } finally {
@@ -26,21 +26,21 @@ export default function Page() {
       useEffect(() => {
    
 
-    fetchBadges();
+    fetchLogoDivisions();
   }, []);
 
 
 
-   const handleAddBadge = async (logo: { name: string; image: string; initials: string }) => {
+   const handleAddLogoDiv = async (logo: { name: string; image: string; initials: string }) => {
     try {
-      const res = await fetch("http://localhost:3000/api/badges", {
+      const res = await fetch("http://localhost:3000/api/logo_divisions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(logo),
       });
 
-      if (!res.ok) throw new Error("Erreur ajout badge");
-      await fetchBadges();
+      if (!res.ok) throw new Error("Erreur ajout logo division");
+      await fetchLogoDivisions();
     } catch (err) {
       console.error(err);
     }
@@ -64,35 +64,35 @@ export default function Page() {
     return (
 <section className="p-9 pt-20 flex flex-col items-center gap-8 w-full">
   <div className="flex justify-between items-center w-full">
-    <h1 className="text-white font-bold text-3xl">Gestion des badges</h1>
+    <h1 className="text-white font-bold text-3xl">Gestion des logos de division</h1>
      <button
                             onClick={() => setAddModalOpen(true)}
                             className=" flex items-center justify-center gap-2 px-4 py-3 bg-[#ff9228] text-[#000000] rounded-xl font-semibold transition-all duration-300 hover:bg-[#ffa64d] hover:shadow-lg hover:shadow-[#ff9228]/30 hover:scale-105 active:scale-95"
                         >
                             <Plus size={18} />
-                            <span className="text-sm">Ajouter un badge</span>
+                            <span className="text-sm">Ajouter un logo de division </span>
                         </button>
   </div>
 
   
-   <BadgeFormModal
+   <LogoDviFormModal
           open={addModalOpen}
           onClose={() => setAddModalOpen(false)}
-          onAddOrUpdate={handleAddBadge}
+          onAddOrUpdate={handleAddLogoDiv}
         />
 
-  {badges.length === 0 ? (
-    <p className="text-white mt-4">Aucun badge n’est disponible pour le moment.</p>
+  {logoDivisions.length === 0 ? (
+    <p className="text-white mt-4">Aucun logo de division n’est disponible pour le moment.</p>
   ) : (
     <div className="flex flex-wrap w-full gap-4 mt-4">
-      {badges.map((item, index) => (
-        <BadgeCard
+      {logoDivisions.map((item, index) => (
+        <LogoDivCard
           id={item.id}
           name={item.name}
           image={item.image}
           initials={item.initials}
           key={index}
-          onRefresh={fetchBadges}
+          onRefresh={fetchLogoDivisions}
         />
       ))}
     </div>

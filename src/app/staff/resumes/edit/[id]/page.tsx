@@ -1,8 +1,9 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useParams } from "next/navigation";
+
 
 // Common nationalities (sorted alphabetically)
 const NATIONALITIES = [
@@ -134,6 +135,10 @@ const STEPS = [
 ];
 
 export default function PlayerForm() {
+
+
+  const { id } = useParams<{ id: string }>();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Step 1 - Identity
@@ -141,12 +146,12 @@ export default function PlayerForm() {
     lastName: "",
     photo: null as File | null,
     photoPreview: "",
-    
+
     // Step 2 - Position
     composition: "4-3-3" as "4-3-3" | "3-5-2",
     mainPosition: "",
     secondaryPosition: "",
-    
+
     // Step 3 - Profile
     nationalities: ["FR"] as string[],
     birthDate: "",
@@ -160,7 +165,7 @@ export default function PlayerForm() {
     email: "",
     phone: "",
     cvColor: "#1E5EFF",
-    
+
     // Step 4 - Career
     seasons: [] as Array<{
       year: string;
@@ -197,7 +202,7 @@ export default function PlayerForm() {
         avgPlayingTime: string;
       };
     }>,
-    
+
     // Step 5 - Formation & Trials
     formations: [] as Array<{
       year: string;
@@ -208,7 +213,7 @@ export default function PlayerForm() {
       club: string;
       year: string;
     }>,
-    
+
     // Step 6 - Contact
     agentEmail: "",
     agentPhone: "",
@@ -217,6 +222,106 @@ export default function PlayerForm() {
     notes: "",
   });
 
+
+
+
+
+
+
+  const hydrateFormData = (resume: any) => {
+    setFormData(prev => ({
+      ...prev,
+
+      // Step 1 - Identity
+      firstName: resume.playerData.firstname ?? "",
+      lastName: resume.playerData.lastname ?? "",
+      photoPreview: resume.playerData.player_image ?? "",
+
+      // Step 2 - Position
+      composition: resume.composition_to_display ?? "4-3-3",
+      mainPosition: resume.playerData.primary_position ?? "",
+      secondaryPosition: resume.playerData.secondary_position ?? "",
+
+      // Step 3 - Profile
+      nationalities: [
+        resume.playerData.nationality1,
+        resume.playerData.nationality2,
+        resume.playerData.nationality3
+      ].filter(Boolean),
+
+      birthDate: resume.playerData.date_of_birth ?? "",
+      preferredFoot: resume.playerData.preferred_foot ?? "",
+      height: resume.playerData.height?.toString() ?? "",
+      weight: resume.playerData.weight?.toString() ?? "",
+      vma: resume.playerData.vma?.toString() ?? "",
+      qualities: resume.playerData.qualities
+        ? resume.playerData.qualities.split(",")
+        : [""],
+
+      email: resume.playerData.email ?? "",
+      phone: resume.playerData.phone ?? "",
+      agentEmail: resume.playerData.email_agent ?? "",
+      agentPhone: resume.playerData.phone_agent ?? "",
+      transfermarktUrl: resume.playerData.transfermark_url ?? "",
+      cvColor: resume.cv_color ?? "#1E5EFF",
+
+      // Step 4 - Career
+      seasons: resume.seasons?.map((s: any) => {
+        const club = s.clubSeasons?.[0] ?? {};
+
+        return {
+          year: s.duration ?? "",
+          isSplit: false,
+          isCurrent: s.current_season ?? false,
+
+          club: club.name ?? "",
+          division: "",
+          category: club.category ?? "",
+          matches: club.matchs?.toString() ?? "",
+          goals: club.goals?.toString() ?? "",
+          assists: club.assists?.toString() ?? "",
+          cleanSheets: "",
+          avgPlayingTime: club.average_playing_time?.toString() ?? "",
+
+          firstHalf: {
+            club: "",
+            division: "",
+            category: "",
+            matches: "",
+            goals: "",
+            assists: "",
+            cleanSheets: "",
+            avgPlayingTime: ""
+          },
+          secondHalf: {
+            club: "",
+            division: "",
+            category: "",
+            matches: "",
+            goals: "",
+            assists: "",
+            cleanSheets: "",
+            avgPlayingTime: ""
+          }
+        };
+      }) ?? [],
+
+      // Step 5 - Formations & Trials
+      formations: resume.formations?.map((f: any) => ({
+        year: f.duration ?? "",
+        title: f.title ?? "",
+        details: f.details ?? ""
+      })) ?? [],
+
+      trials: resume.essais?.map((e: any) => ({
+        club: e.club ?? "",
+        year: e.year ?? ""
+      })) ?? [],
+
+      // Step 6 - Notes
+      notes: resume.comments ?? ""
+    }));
+  };
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
   const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
@@ -226,78 +331,100 @@ export default function PlayerForm() {
 
 
 
-   const submitForm = async () => {
-  try {
-    // Préparer le body
-    const body = {
 
-        cv_color: formData.cvColor,
-      composition_to_display: formData.composition,
-        comments: formData.notes,
-      playerData: {
-        player_image : "",
-        nationality1: formData.nationalities[0],
-        nationality2 : formData.nationalities[1],
-        nationality3 : formData.nationalities[2],
-        firstname: formData.firstName,
-        lastname: formData.lastName,
-        date_of_birth: formData.birthDate,
-        preferred_foot: formData.preferredFoot,
-        height: Number(formData.height) || null,
-        weight: Number(formData.weight) || null,
-        primary_position: formData.mainPosition,
-        secondary_position: formData.secondaryPosition,
-        vma: Number(formData.vma) || null,
-        qualities: formData.qualities.join(','),
-        email: formData.email,
-        phone: formData.phone,
-        email_agent: formData.agentEmail,
-        phone_agent: formData.agentPhone,
-        transfermark_url: formData.transfermarktUrl,
-      },
 
-      seasons: formData.seasons.map(s => ({
-        duration: s.year,
-        current_season: s.isCurrent,
-        clubSeasons: [
-          {
-            name: s.club,
-            category: s.category,
-            matchs: Number(s.matches) || 0,
-            goals: Number(s.goals) || 0,
-            assists: Number(s.assists) || 0,
-            average_playing_time: Number(s.avgPlayingTime) || 0,
-          },
-        ],
-      })),
-      formations: formData.formations.map(f => ({
-        duration: f.year,
-        title: f.title,
-        details: f.details,
-      })),
-      essais: formData.trials.map(t => ({
-        club: t.club,
-        year: t.year,
-      })),
+
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchResume = async () => {
+      const res = await fetch(`http://localhost:3000/api/resumes/?id=${id}`);
+      
+      if (!res.ok) return;
+      const data = await res.json();
+      console.log("data" ,data)
+      hydrateFormData(data[4]);
     };
 
-    const res = await fetch('http://localhost:3000/api/resumes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    fetchResume();
+  }, [id]);
 
-    const data = await res.json();
 
-    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
 
-    alert(`CV créé avec l'ID ${data.resumeId}`);
-    // Tu peux réinitialiser le formulaire ou rediriger ici
-  } catch (err: any) {
-    console.error(err);
-    alert(`Erreur Serveur`);
-  }
-};
+
+  const submitForm = async () => {
+    try {
+      // Préparer le body
+      const body = {
+
+        cv_color: formData.cvColor,
+        composition_to_display: formData.composition,
+        comments: formData.notes,
+        playerData: {
+          player_image: "",
+          nationality1: formData.nationalities[0],
+          nationality2: formData.nationalities[1],
+          nationality3: formData.nationalities[2],
+          firstname: formData.firstName,
+          lastname: formData.lastName,
+          date_of_birth: formData.birthDate,
+          preferred_foot: formData.preferredFoot,
+          height: Number(formData.height) || null,
+          weight: Number(formData.weight) || null,
+          primary_position: formData.mainPosition,
+          secondary_position: formData.secondaryPosition,
+          vma: Number(formData.vma) || null,
+          qualities: formData.qualities.join(','),
+          email: formData.email,
+          phone: formData.phone,
+          email_agent: formData.agentEmail,
+          phone_agent: formData.agentPhone,
+          transfermark_url: formData.transfermarktUrl,
+        },
+
+        seasons: formData.seasons.map(s => ({
+          duration: s.year,
+          current_season: s.isCurrent,
+          clubSeasons: [
+            {
+              name: s.club,
+              category: s.category,
+              matchs: Number(s.matches) || 0,
+              goals: Number(s.goals) || 0,
+              assists: Number(s.assists) || 0,
+              average_playing_time: Number(s.avgPlayingTime) || 0,
+            },
+          ],
+        })),
+        formations: formData.formations.map(f => ({
+          duration: f.year,
+          title: f.title,
+          details: f.details,
+        })),
+        essais: formData.trials.map(t => ({
+          club: t.club,
+          year: t.year,
+        })),
+      };
+
+      const res = await fetch('http://localhost:3000/api/resumes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+
+      alert(`CV créé avec l'ID ${data.resumeId}`);
+      // Tu peux réinitialiser le formulaire ou rediriger ici
+    } catch (err: any) {
+      console.error(err);
+      alert(`Erreur Serveur`);
+    }
+  };
 
 
 
@@ -466,7 +593,7 @@ export default function PlayerForm() {
 
       <main className="flex-1 py-6">
         <div className="container mx-auto px-4 max-w-2xl">
-          
+
           {/* Progress Steps with CV Preview */}
           <div className="mb-8 flex items-start gap-4">
             <div className="flex-1">
@@ -476,19 +603,17 @@ export default function PlayerForm() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(step.id)}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${
-                        step.id <= currentStep
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${step.id <= currentStep
                           ? "bg-[#FF9228] text-white"
                           : "bg-white/10 text-white/50 hover:bg-white/20"
-                      }`}
+                        }`}
                     >
                       {step.id}
                     </button>
                     {index < STEPS.length - 1 && (
                       <div
-                        className={`flex-1 h-1 mx-2 ${
-                          step.id < currentStep ? "bg-[#FF9228]" : "bg-white/10"
-                        }`}
+                        className={`flex-1 h-1 mx-2 ${step.id < currentStep ? "bg-[#FF9228]" : "bg-white/10"
+                          }`}
                       />
                     )}
                   </React.Fragment>
@@ -502,13 +627,13 @@ export default function PlayerForm() {
             {/* CV Preview Thumbnail - hidden on step 6 */}
             {currentStep !== 6 && (
               <div className="relative w-16 sm:w-20 flex-shrink-0">
-                <img 
-                  src="/cv-base-433.png" 
-                  alt="CV Preview" 
+                <img
+                  src="/cv-base-433.png"
+                  alt="CV Preview"
                   className="w-full rounded shadow-lg border border-white/20"
                 />
                 {/* Animated highlight rectangle */}
-                <div 
+                <div
                   className="absolute border-2 border-[#FF9228] rounded-sm transition-all duration-500 ease-out pointer-events-none"
                   style={{
                     ...getHighlightStyle(),
@@ -521,12 +646,12 @@ export default function PlayerForm() {
 
           {/* Form Card */}
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-            
+
             {/* Step 1: Identity */}
             {currentStep === 1 && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold text-white">Identité</h2>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
                     Photo *
@@ -655,11 +780,10 @@ export default function PlayerForm() {
                         updateFormData("mainPosition", "");
                         updateFormData("secondaryPosition", "");
                       }}
-                      className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                        formData.composition === "4-3-3"
+                      className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${formData.composition === "4-3-3"
                           ? "bg-[#FF9228] text-white"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
+                        }`}
                     >
                       4-3-3
                     </button>
@@ -670,11 +794,10 @@ export default function PlayerForm() {
                         updateFormData("mainPosition", "");
                         updateFormData("secondaryPosition", "");
                       }}
-                      className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                        formData.composition === "3-5-2"
+                      className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${formData.composition === "3-5-2"
                           ? "bg-[#FF9228] text-white"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
+                        }`}
                     >
                       3-5-2
                     </button>
@@ -794,7 +917,7 @@ export default function PlayerForm() {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Legend */}
                   <div className="flex justify-center gap-6 mt-4 text-sm text-white/60">
                     <div className="flex items-center gap-2">
@@ -1198,22 +1321,20 @@ export default function PlayerForm() {
                               <button
                                 type="button"
                                 onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "first" })}
-                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${
-                                  (activeHalfTab[index] || "first") === "first"
+                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${(activeHalfTab[index] || "first") === "first"
                                     ? "bg-[#FF9228] text-white"
                                     : "bg-white/10 text-white/80 hover:bg-white/10"
-                                }`}
+                                  }`}
                               >
                                 1ère moitié
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "second" })}
-                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${
-                                  (activeHalfTab[index] || "first") === "second"
+                                className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${(activeHalfTab[index] || "first") === "second"
                                     ? "bg-[#FF9228] text-white"
                                     : "bg-white/10 text-white/80 hover:bg-white/10"
-                                }`}
+                                  }`}
                               >
                                 2ème moitié
                               </button>
@@ -1498,11 +1619,10 @@ export default function PlayerForm() {
                         key={color.value}
                         type="button"
                         onClick={() => updateFormData("cvColor", color.value)}
-                        className={`w-10 h-10 rounded-full border-4 transition-all ${
-                          formData.cvColor === color.value
+                        className={`w-10 h-10 rounded-full border-4 transition-all ${formData.cvColor === color.value
                             ? "border-white scale-110"
                             : "border-transparent hover:scale-105"
-                        }`}
+                          }`}
                         style={{ backgroundColor: color.value }}
                         title={color.name}
                       />
@@ -1512,9 +1632,9 @@ export default function PlayerForm() {
 
                 {/* Large CV Preview */}
                 <div className="flex justify-center">
-                  <img 
-                    src="/cv-base-433.png" 
-                    alt="CV Preview" 
+                  <img
+                    src="/cv-base-433.png"
+                    alt="CV Preview"
                     className="w-32 sm:w-40 rounded-lg shadow-xl border-2 border-white/20"
                   />
                 </div>
@@ -1540,11 +1660,10 @@ export default function PlayerForm() {
                 type="button"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className={`px-6 py-3 rounded-full font-medium transition-all ${
-                  currentStep === 1
+                className={`px-6 py-3 rounded-full font-medium transition-all ${currentStep === 1
                     ? "bg-white/10 text-white/40 cursor-not-allowed"
                     : "bg-white/10 text-white/80 hover:bg-white/20"
-                }`}
+                  }`}
               >
                 Précédent
               </button>
@@ -1563,7 +1682,7 @@ export default function PlayerForm() {
                   className="px-8 py-3 bg-[#FF9228] text-white rounded-full font-medium hover:bg-[#FF9228]/90 transition-all"
                   onClick={submitForm}
                 >
-                  
+
                   Soumettre mon CV
                 </button>
               )}
@@ -1594,11 +1713,10 @@ export default function PlayerForm() {
                     updateNationality(editingNationalityIndex, nation.code);
                     setIsNationalityModalOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-                    formData.nationalities[editingNationalityIndex] === nation.code
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${formData.nationalities[editingNationalityIndex] === nation.code
                       ? "bg-[#FF9228]/20 text-[#FF9228]"
                       : "text-white hover:bg-white/10"
-                  }`}
+                    }`}
                 >
                   <span className="font-medium">{nation.name}</span>
                 </button>
