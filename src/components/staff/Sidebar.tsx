@@ -1,10 +1,12 @@
 "use client"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LayoutDashboard, Award, Shield, FileText, LogOut, Home } from "lucide-react"
+import { LayoutDashboard, Award, Shield, FileText, LogOut, Home, FileDown } from "lucide-react"
+import { useState } from "react"
 
 export default function StaffSidebar() {
   const router = useRouter()
+  const [isGenerating, setIsGenerating] = useState(false)
   
   const menuItems = [
     { name: "Gestion des Logos", href: "/staff/logos", icon: <LayoutDashboard size={20} /> },
@@ -17,6 +19,32 @@ export default function StaffSidebar() {
     await fetch("/api/staff/logout", { method: "POST" })
     router.push("/staff/login")
     router.refresh()
+  }
+
+  const handleGenerateCV = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch("/api/generate-cv?id=demo")
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = "CV-demo.pdf"
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      } else {
+        const error = await response.json()
+        alert("Erreur: " + error.details)
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Erreur lors de la génération du PDF")
+    } finally {
+      setIsGenerating(false)
+    }
   }
   
   return (
@@ -37,6 +65,16 @@ export default function StaffSidebar() {
             <span className="font-medium">{item.name}</span>
           </Link>
         ))}
+
+        {/* Temporary CV Generation Button */}
+        <button
+          onClick={handleGenerateCV}
+          disabled={isGenerating}
+          className="flex items-center gap-3 px-4 py-3 w-full text-[#ffffff] rounded-xl transition-all duration-300 hover:bg-green-600 hover:text-white hover:shadow-lg hover:scale-105 group cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FileDown size={20} className="text-green-400 group-hover:text-white transition-colors duration-300" />
+          <span className="font-medium">{isGenerating ? "Génération..." : "Générer CV (Demo)"}</span>
+        </button>
       </nav>
       <div className="p-4 border-t border-gray-800 space-y-2">
         <Link
