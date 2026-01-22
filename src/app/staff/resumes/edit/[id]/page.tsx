@@ -271,6 +271,9 @@ export default function PlayerForm() {
       qualities: resume.playerData.qualities
         ? resume.playerData.qualities.split(",")
         : [""],
+      internationals: resume.playerData.internationals
+        ? resume.playerData.qualities.split(",")
+        : [""],
 
       email: resume.playerData.email ?? "",
       phone: resume.playerData.phone ?? "",

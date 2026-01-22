@@ -10,6 +10,7 @@ export type PlayerData = {
   nationality1?: string;
   nationality2?: string;
   nationality3?: string;
+  internationals : string,
   player_image?: string;
   date_of_birth?: string;
   preferred_foot?: string;
@@ -95,8 +96,8 @@ export async function POST(req: NextRequest) {
           firstname, lastname, nationality1, nationality2, nationality3,
           player_image, date_of_birth, preferred_foot, height, weight,
           primary_position, secondary_position, vma, transfermark_url, qualities,
-          email, phone, email_agent, phone_agent
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          email, phone, email_agent, phone_agent , internationals
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
       `);
 
       const playerInfo = playerStmt.run(
@@ -118,7 +119,8 @@ export async function POST(req: NextRequest) {
         playerData.email ?? null,
         playerData.phone ?? null,
         playerData.email_agent ?? null,
-        playerData.phone_agent ?? null
+        playerData.phone_agent ?? null,
+        playerData.internationals ?? null
       );
 
       const playerId = playerInfo.lastInsertRowid;
@@ -240,7 +242,8 @@ export async function GET(req: NextRequest) {
         email: r.email,
         phone: r.phone,
         email_agent: r.email_agent,
-        phone_agent: r.phone_agent
+        phone_agent: r.phone_agent,
+        internationals : r.internationals
       };
       const seasons: Season[] = db.prepare(`SELECT * FROM Season WHERE resume_id = ?`).all(r.resumeId).map((s: any) => ({
         ...s,

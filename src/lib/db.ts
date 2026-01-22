@@ -50,6 +50,7 @@ db.exec(`
     nationality1 TEXT,
     nationality2 TEXT,
     nationality3 TEXT,
+    internationals TEXT,
     player_image TEXT,
     date_of_birth DATE,
     preferred_foot TEXT,

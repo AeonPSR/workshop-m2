@@ -337,6 +337,7 @@ export default function PlayerForm() {
        composition_to_display: formData.composition,
         comments: formData.notes,
         playerData: {
+        internationals : formData.internationals.join(','),
         player_image : formData.photoPreview,
         nationality1: formData.nationalities[0],
         nationality2 : formData.nationalities[1],
