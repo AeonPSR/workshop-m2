@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useDemoMode } from "@/context/DemoModeContext"; // ⚠️ DEMO MODE - REMOVE FOR PRODUCTION
@@ -134,6 +135,7 @@ const STEPS = [
 ];
 
 export default function PlayerForm() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Step 1 - Identity
@@ -428,8 +430,7 @@ seasons: formData.seasons.map(s => {
 
     if (!res.ok) throw new Error(data.error || 'Erreur serveur');
 
-    alert(`CV créé avec l'ID ${data.resumeId}`);
-    // Tu peux réinitialiser le formulaire ou rediriger ici
+    router.push('/');
   } catch (err: any) {
     console.error(err);
     alert(`Erreur Serveur`);

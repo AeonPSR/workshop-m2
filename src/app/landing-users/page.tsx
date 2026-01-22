@@ -19,11 +19,11 @@ export default function LandingUsers() {
 
           <div className="container mx-auto px-6 relative z-10 text-center">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter mb-6">
-              <span className="block text-white">Révélez votre</span>
-              <span className="bg-gradient-to-r from-[#FF9228] to-[#FF6B00] bg-clip-text text-transparent">Potentiel</span>
+              <span className="block text-white">Bienvenue sur</span>
+              <span className="bg-gradient-to-r from-[#FF9228] to-[#FF6B00] bg-clip-text text-transparent">Scoutify</span>
             </h1>
             <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-10 font-medium">
-              Des CV Sportifs professionnels pour les joueurs ambitieux qui veulent passer au niveau supérieur.
+              Créez votre CV Sportif professionnel et passez au niveau supérieur.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
@@ -31,7 +31,7 @@ export default function LandingUsers() {
                 className="group relative border-2 border-[#FF9228] px-8 py-4 bg-transparent text-white font-bold text-lg uppercase tracking-wide rounded-full transition-all hover:scale-[1.025] hover:shadow-[0_0_40px_rgba(255,146,40,0.4)]"
               >
                 <span className="flex items-center gap-2">
-                  Commander maintenant
+                  Créer mon CV
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 group-hover:translate-x-1 transition-transform">
                     <path d="M5 12h14"></path>
                     <path d="m12 5 7 7-7 7"></path>
@@ -98,13 +98,13 @@ export default function LandingUsers() {
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
           <div className="container relative z-10 mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 max-w-3xl mx-auto leading-tight text-white drop-shadow-sm">
-              Prêt à booster votre carrière ?
+              Prêt à créer votre CV ?
             </h2>
             <Link
               href="/player"
               className="inline-flex items-center gap-2 bg-white text-[#0a0a0a] font-bold text-lg uppercase tracking-wide py-4 px-8 rounded-full hover:bg-white/90 transition-all hover:scale-[1.025]"
             >
-              Créer mon CV maintenant
+              Commencer maintenant
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>

@@ -282,7 +282,7 @@ export async function GET(
         p.phone,
         p.email_agent,
         p.phone_agent,
-        internationals,
+        p.internationals
       FROM Resume r
       JOIN PlayerData p ON p.id = r.player_data_id
       WHERE r.id = ?
