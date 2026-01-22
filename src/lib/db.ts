@@ -112,15 +112,35 @@ db.exec(`
     assists INTEGER DEFAULT 0,
     average_playing_time INTEGER DEFAULT 0,
     half_number INT,
+    comment1 TEXT,
     badge1 TEXT,
+    comment2 TEXT,
     badge2 TEXT,
+    comment3 TEXT,
     badge3 TEXT,
     FOREIGN KEY(season_id) REFERENCES Season(id) ON DELETE CASCADE
   );`);
 
+// Table International (for international selections like U19 France, U21 Senegal)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS International (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resume_id INTEGER NOT NULL,
+    country_code TEXT NOT NULL,
+    FOREIGN KEY(resume_id) REFERENCES Resume(id) ON DELETE CASCADE
+  );
+`);
 
-
-
+// Table Link (for external links - video, social media, etc.)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS Link (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resume_id INTEGER NOT NULL,
+    url TEXT NOT NULL,
+    link_type TEXT,
+    FOREIGN KEY(resume_id) REFERENCES Resume(id) ON DELETE CASCADE
+  );
+`);
 
 
   // Table Formations

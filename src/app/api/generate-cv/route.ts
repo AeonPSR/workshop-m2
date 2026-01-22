@@ -44,6 +44,11 @@ export async function GET(request: Request) {
     // Give React time to hydrate and fetch data
     await new Promise(resolve => setTimeout(resolve, 3000));
     
+    // Set the page title to match the PDF filename
+    await page.evaluate((cvId) => {
+      document.title = `CV-${cvId}`;
+    }, id);
+    
     // Generate PDF
     const pdfBuffer = await page.pdf({
       format: "A4",

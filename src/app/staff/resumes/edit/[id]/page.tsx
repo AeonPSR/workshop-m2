@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LogoDivision } from "@/lib/types/logo_division";
 import { Logo } from "@/lib/types/logo";
 import { Badge } from "@/lib/types/badge";
@@ -138,6 +138,7 @@ const STEPS = [
 export default function PlayerForm() {
 
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -231,6 +232,9 @@ export default function PlayerForm() {
     videoUrl: "",
     transfermarktUrl: "",
     notes: "",
+    
+    // Links (stored in DB)
+    links: [] as Array<{ url: string; link_type: string }>,
   });
 
 
@@ -277,6 +281,15 @@ export default function PlayerForm() {
 
       // Step 4 - Career
       seasons: resume.seasons?.map((s: any) => {
+        // Helper function to extract comments from clubSeason
+        const extractComments = (clubSeason: any) => {
+          const comments: Array<{ text: string; badge: string }> = [];
+          if (clubSeason?.comment1) comments.push({ text: clubSeason.comment1, badge: clubSeason.badge1 ?? "" });
+          if (clubSeason?.comment2) comments.push({ text: clubSeason.comment2, badge: clubSeason.badge2 ?? "" });
+          if (clubSeason?.comment3) comments.push({ text: clubSeason.comment3, badge: clubSeason.badge3 ?? "" });
+          return comments;
+        };
+
         if (s.clubSeasons?.length === 2) {
           // Split season
           return {
@@ -294,7 +307,7 @@ export default function PlayerForm() {
               assists: s.clubSeasons[0].assists?.toString() ?? "",
               cleanSheets: "",
               avgPlayingTime: s.clubSeasons[0].average_playing_time?.toString() ?? "",
-              comments: [] as Array<{ text: string; badge: string }>
+              comments: extractComments(s.clubSeasons[0])
             },
             secondHalf: {
               club: s.clubSeasons[1].name ?? "",
@@ -307,7 +320,7 @@ export default function PlayerForm() {
               assists: s.clubSeasons[1].assists?.toString() ?? "",
               cleanSheets: "",
               avgPlayingTime: s.clubSeasons[1].average_playing_time?.toString() ?? "",
-              comments: [] as Array<{ text: string; badge: string }>
+              comments: extractComments(s.clubSeasons[1])
             },
             // Full season fields empty
             club: "",
@@ -337,7 +350,7 @@ export default function PlayerForm() {
             assists: club.assists?.toString() ?? "",
             cleanSheets: "",
             avgPlayingTime: club.average_playing_time?.toString() ?? "",
-            comments: [] as Array<{ text: string; badge: string }>,
+            comments: extractComments(club),
             firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", clubLogo: "", divisionLogo: "", comments: [] as Array<{ text: string; badge: string }> },
             secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", clubLogo: "", divisionLogo: "", comments: [] as Array<{ text: string; badge: string }> }
           };
@@ -357,7 +370,15 @@ export default function PlayerForm() {
       })) ?? [],
 
       // Step 6 - Notes
-      notes: resume.comments ?? ""
+      notes: resume.comments ?? "",
+
+      // Internationals (from DB)
+      internationals: resume.internationals?.length > 0 
+        ? resume.internationals.map((i: any) => i.country_code)
+        : [""],
+
+      // Links (from DB)
+      links: resume.links ?? []
     }));
   };
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
@@ -462,6 +483,16 @@ export default function PlayerForm() {
         seasons: formData.seasons.map(s => {
           const isSplit = s.isSplit ? 1 : 0;
 
+          // Helper to map comments array to comment1-3, badge1-3 format
+          const mapComments = (comments: Array<{ text: string; badge: string }>) => ({
+            comment1: comments[0]?.text || null,
+            badge1: comments[0]?.badge || null,
+            comment2: comments[1]?.text || null,
+            badge2: comments[1]?.badge || null,
+            comment3: comments[2]?.text || null,
+            badge3: comments[2]?.badge || null,
+          });
+
           return {
             duration: s.year || null,
             current_season: s.isCurrent ? 1 : 0,
@@ -479,6 +510,7 @@ export default function PlayerForm() {
                    logo_division : s.firstHalf.divisionLogo || null,
                   logo_club : s.firstHalf.clubLogo || null,
                   average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
+                  ...mapComments(s.firstHalf.comments),
                 },
                 // DEUXIÈME MOITIÉ (half_number: 2 dans le back)
                 {
@@ -491,7 +523,7 @@ export default function PlayerForm() {
                    logo_division : s.secondHalf.divisionLogo || null,
                   logo_club : s.secondHalf.clubLogo || null,
                   average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
-
+                  ...mapComments(s.secondHalf.comments),
                 }
               ]
               : [
@@ -506,6 +538,7 @@ export default function PlayerForm() {
                   logo_division : s.divisionLogo || null,
                   logo_club : s.clubLogo || null,
                   average_playing_time: Number(s.avgPlayingTime) || 0,
+                  ...mapComments(s.comments),
                 }
               ]
           };
@@ -523,6 +556,14 @@ export default function PlayerForm() {
           club: t.club,
           year: t.year,
         })),
+        
+        // Internationals - filter out empty strings
+        internationals: formData.internationals
+          .filter(code => code && code.trim() !== "")
+          .map(code => ({ country_code: code })),
+        
+        // Links - filter out empty URLs
+        links: formData.links.filter(l => l.url && l.url.trim() !== ""),
       };
 
       const res = await fetch(`http://localhost:3000/api/resumes/${id}`, {
@@ -535,8 +576,7 @@ export default function PlayerForm() {
 
       if (!res.ok) throw new Error(data.error || 'Erreur serveur');
 
-      alert(`CV modifié avec avec succées ${data.resumeId}`);
-      // Tu peux réinitialiser le formulaire ou rediriger ici
+      router.push('/staff/resumes');
     } catch (err: any) {
       console.error(err);
       
@@ -702,6 +742,23 @@ export default function PlayerForm() {
     const newSeasons = [...formData.seasons];
     newSeasons[seasonIndex][half].comments = newSeasons[seasonIndex][half].comments.filter((_, i) => i !== commentIndex);
     updateFormData("seasons", newSeasons);
+  };
+
+  // Link management
+  const addLink = () => {
+    if (formData.links.length < 5) {
+      updateFormData("links", [...formData.links, { url: "", link_type: "" }]);
+    }
+  };
+
+  const updateLink = (index: number, field: "url" | "link_type", value: string) => {
+    const newLinks = [...formData.links];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    updateFormData("links", newLinks);
+  };
+
+  const removeLink = (index: number) => {
+    updateFormData("links", formData.links.filter((_, i) => i !== index));
   };
 
   const addFormation = () => {
@@ -2089,6 +2146,60 @@ export default function PlayerForm() {
                     placeholder="Informations complémentaires, situation particulière, objectifs..."
                     rows={4}
                   />
+                </div>
+
+                {/* Links Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-white/80">
+                      Liens externes (max 5)
+                    </label>
+                    {formData.links.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={addLink}
+                        className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium"
+                      >
+                        + Ajouter un lien
+                      </button>
+                    )}
+                  </div>
+                  {formData.links.length === 0 ? (
+                    <p className="text-white/50 text-sm">Aucun lien ajouté</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.links.map((link, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <select
+                            value={link.link_type}
+                            onChange={(e) => updateLink(index, "link_type", e.target.value)}
+                            className="px-3 py-2 bg-gray-800 border border-white/20 rounded-lg text-sm text-white"
+                          >
+                            <option value="">Type</option>
+                            <option value="video">Vidéo</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="twitter">Twitter/X</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="other">Autre</option>
+                          </select>
+                          <input
+                            type="url"
+                            value={link.url}
+                            onChange={(e) => updateLink(index, "url", e.target.value)}
+                            className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                            placeholder="https://..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeLink(index)}
+                            className="text-red-500 hover:text-red-700 text-lg"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

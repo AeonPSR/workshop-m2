@@ -3,8 +3,8 @@ import "./globals.css";
 import { DemoModeProvider } from "@/context/DemoModeContext";
 
 export const metadata: Metadata = {
-  title: "Next.js + SQLite + Zod",
-  description: "A Next.js application with SQLite database and Zod validation",
+  title: "Scoutify",
+  description: "Scoutify - Générateur de CV pour joueurs de football",
 };
 
 export default function RootLayout({

@@ -27,7 +27,9 @@ export async function PUT(
       isTreated,
       seasons,
       formations,
-      essais
+      essais,
+      internationals,
+      links
     } = body;
 
     db.transaction(() => {
@@ -100,8 +102,8 @@ export async function PUT(
       `);
       const clubStmt = db.prepare(`
         INSERT INTO Club_Season 
-        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number,logo_club, logo_division  )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ? , ?)
+        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number, logo_club, logo_division, comment1, badge1, comment2, badge2, comment3, badge3)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
        seasons?.forEach(s => {
@@ -121,11 +123,17 @@ export async function PUT(
 
           clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].division , s.clubSeasons[0].category ?? null,
             s.clubSeasons[0].matchs ?? 0, s.clubSeasons[0].goals ?? 0, s.clubSeasons[0].assists ?? 0,
-            s.clubSeasons[0].average_playing_time ?? 0, 1 , s.clubSeasons[0].logo_club , s.clubSeasons[0].logo_division); // first half
+            s.clubSeasons[0].average_playing_time ?? 0, 1 , s.clubSeasons[0].logo_club , s.clubSeasons[0].logo_division,
+            s.clubSeasons[0].comment1 ?? null, s.clubSeasons[0].badge1 ?? null,
+            s.clubSeasons[0].comment2 ?? null, s.clubSeasons[0].badge2 ?? null,
+            s.clubSeasons[0].comment3 ?? null, s.clubSeasons[0].badge3 ?? null); // first half
 
           clubStmt.run(seasonId, s.clubSeasons[1].name ?? null,  s.clubSeasons[1].division, s.clubSeasons[1].category ?? null,
             s.clubSeasons[1].matchs ?? 0, s.clubSeasons[1].goals ?? 0, s.clubSeasons[1].assists ?? 0,
-            s.clubSeasons[1].average_playing_time ?? 0, 2,  s.clubSeasons[1].logo_club , s.clubSeasons[1].logo_division); // second half
+            s.clubSeasons[1].average_playing_time ?? 0, 2,  s.clubSeasons[1].logo_club , s.clubSeasons[1].logo_division,
+            s.clubSeasons[1].comment1 ?? null, s.clubSeasons[1].badge1 ?? null,
+            s.clubSeasons[1].comment2 ?? null, s.clubSeasons[1].badge2 ?? null,
+            s.clubSeasons[1].comment3 ?? null, s.clubSeasons[1].badge3 ?? null); // second half
 
         } else {
           // Full season → exactly 1 clubSeason
@@ -143,10 +151,14 @@ export async function PUT(
             s.clubSeasons[0].assists ?? 0,
             s.clubSeasons[0].average_playing_time ?? 0,
             null, // no half
-              s.clubSeasons[0].logo_club,
-
-            s.clubSeasons[0].logo_division ,
-
+            s.clubSeasons[0].logo_club,
+            s.clubSeasons[0].logo_division,
+            s.clubSeasons[0].comment1 ?? null,
+            s.clubSeasons[0].badge1 ?? null,
+            s.clubSeasons[0].comment2 ?? null,
+            s.clubSeasons[0].badge2 ?? null,
+            s.clubSeasons[0].comment3 ?? null,
+            s.clubSeasons[0].badge3 ?? null
           );
         }
       });
@@ -182,6 +194,34 @@ export async function PUT(
           e.club ?? null,
           e.year ?? null
         );
+      });
+
+      /* -------- Internationals -------- */
+      db.prepare(`DELETE FROM International WHERE resume_id = ?`).run(resumeId);
+
+      const internationalStmt = db.prepare(`
+        INSERT INTO International (resume_id, country_code)
+        VALUES (?, ?)
+      `);
+
+      internationals?.forEach((i: { country_code: string }) => {
+        if (i.country_code) {
+          internationalStmt.run(resumeId, i.country_code);
+        }
+      });
+
+      /* -------- Links -------- */
+      db.prepare(`DELETE FROM Link WHERE resume_id = ?`).run(resumeId);
+
+      const linkStmt = db.prepare(`
+        INSERT INTO Link (resume_id, url, link_type)
+        VALUES (?, ?, ?)
+      `);
+
+      links?.forEach((l: { url: string; link_type?: string }) => {
+        if (l.url) {
+          linkStmt.run(resumeId, l.url, l.link_type ?? null);
+        }
       });
     })();
 
@@ -293,7 +333,13 @@ export async function GET(
             logo_club : c.logo_club,
             logo_division : c.logo_division,
             average_playing_time: c.average_playing_time,
-            half_number: c.half_number ,
+            half_number: c.half_number,
+            comment1: c.comment1,
+            badge1: c.badge1,
+            comment2: c.comment2,
+            badge2: c.badge2,
+            comment3: c.comment3,
+            badge3: c.badge3,
           }));
 
         return {
@@ -329,6 +375,27 @@ export async function GET(
         year: e.year
       }));
 
+    /* -------- Internationals -------- */
+    const internationals: { id: number; resume_id: number; country_code: string }[] = db
+      .prepare(`SELECT * FROM International WHERE resume_id = ?`)
+      .all(resumeId)
+      .map((i: any) => ({
+        id: i.id,
+        resume_id: i.resume_id,
+        country_code: i.country_code
+      }));
+
+    /* -------- Links -------- */
+    const links: { id: number; resume_id: number; url: string; link_type: string }[] = db
+      .prepare(`SELECT * FROM Link WHERE resume_id = ?`)
+      .all(resumeId)
+      .map((l: any) => ({
+        id: l.id,
+        resume_id: l.resume_id,
+        url: l.url,
+        link_type: l.link_type
+      }));
+
     /* -------- Resume final -------- */
     const resume: Resume = {
       resumeId: row.resumeId,
@@ -341,7 +408,9 @@ export async function GET(
       playerData,
       seasons,
       formations,
-      essais
+      essais,
+      internationals,
+      links
     };
 
     return NextResponse.json(resume, { status: 200 });
@@ -410,6 +479,12 @@ export async function DELETE(
 
       // Supprimer les Essais
       db.prepare(`DELETE FROM Essais WHERE resume_id = ?`).run(resumeId);
+
+      // Supprimer les Internationals
+      db.prepare(`DELETE FROM International WHERE resume_id = ?`).run(resumeId);
+
+      // Supprimer les Links
+      db.prepare(`DELETE FROM Link WHERE resume_id = ?`).run(resumeId);
 
       // Supprimer le Resume
       db.prepare(`DELETE FROM Resume WHERE id = ?`).run(resumeId);

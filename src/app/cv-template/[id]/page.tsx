@@ -24,6 +24,12 @@ interface ClubSeason {
   logo_division: string;
   average_playing_time: number;
   half_number: number | null;
+  comment1: string | null;
+  badge1: string | null;
+  comment2: string | null;
+  badge2: string | null;
+  comment3: string | null;
+  badge3: string | null;
 }
 
 interface Season {
@@ -85,6 +91,8 @@ interface ResumeAPIResponse {
   seasons: Season[];
   formations: Formation[];
   essais: Essai[];
+  internationals: { id: number; resume_id: number; country_code: string }[];
+  links: { id: number; resume_id: number; url: string; link_type: string }[];
 }
 
 // Type for internal CV data structure
@@ -93,7 +101,7 @@ interface CVData {
   lastName: string;
   photoUrl: string;
   nationalities: string[];
-  internationals: string[]; // Not in DB yet - will show MISSING
+  internationals: string[]; // From DB - international selections
   birthDate: string;
   preferredFoot: string;
   height: string;
@@ -284,7 +292,7 @@ const POSITION_NAMES: Record<string, string> = {
 
 // Helper function to transform API response to CV data format
 function transformAPIResponse(apiData: ResumeAPIResponse): CVData {
-  const { playerData, seasons, formations, essais, cv_color, composition_to_display } = apiData;
+  const { playerData, seasons, formations, essais, cv_color, composition_to_display, internationals, links } = apiData;
   
   // Build nationalities array from nationality1, 2, 3
   const nationalities: string[] = [];
@@ -306,6 +314,15 @@ function transformAPIResponse(apiData: ResumeAPIResponse): CVData {
   
   // Transform seasons - handle split seasons
   const transformedSeasons = seasons.flatMap((season) => {
+    // Helper to extract comments from clubSeason
+    const extractComments = (cs: ClubSeason) => {
+      const comments: { text: string; badges: string[] }[] = [];
+      if (cs.comment1) comments.push({ text: cs.comment1, badges: cs.badge1 ? [cs.badge1] : [] });
+      if (cs.comment2) comments.push({ text: cs.comment2, badges: cs.badge2 ? [cs.badge2] : [] });
+      if (cs.comment3) comments.push({ text: cs.comment3, badges: cs.badge3 ? [cs.badge3] : [] });
+      return comments;
+    };
+
     if (season.is_split && season.clubSeasons.length >= 2) {
       // Split season: create two entries
       return season.clubSeasons.map((cs, idx) => ({
@@ -320,7 +337,7 @@ function transformAPIResponse(apiData: ResumeAPIResponse): CVData {
         goals: String(cs.goals || 0),
         assists: String(cs.assists || 0),
         avgPlayingTime: String(cs.average_playing_time || 0),
-        comments: [], // Not in DB yet - empty for now
+        comments: extractComments(cs),
       }));
     } else {
       // Full season: single entry
@@ -337,7 +354,7 @@ function transformAPIResponse(apiData: ResumeAPIResponse): CVData {
         goals: String(cs?.goals || 0),
         assists: String(cs?.assists || 0),
         avgPlayingTime: String(cs?.average_playing_time || 0),
-        comments: [], // Not in DB yet - empty for now
+        comments: cs ? extractComments(cs) : [],
       }];
     }
   });
@@ -361,7 +378,7 @@ function transformAPIResponse(apiData: ResumeAPIResponse): CVData {
     lastName: playerData.lastname || "MISSING",
     photoUrl: playerData.player_image || "",
     nationalities: nationalities.length > 0 ? nationalities : [],
-    internationals: [], // Not in DB yet - empty for now
+    internationals: internationals?.map(i => i.country_code) || [],
     birthDate: playerData.date_of_birth || "",
     preferredFoot: playerData.preferred_foot || "MISSING",
     height: playerData.height ? String(playerData.height) : "MISSING",
@@ -376,7 +393,7 @@ function transformAPIResponse(apiData: ResumeAPIResponse): CVData {
     managerEmail: playerData.email_agent || "",
     managerPhone: playerData.phone_agent || "",
     cvColor: cv_color || "#1E5EFF",
-    links: [], // Not fully in DB yet - empty for now
+    links: links?.map(l => l.url) || [],
     seasons: transformedSeasons,
     formations: transformedFormations,
     essais: transformedEssais,
@@ -968,7 +985,7 @@ export default function CVTemplatePage() {
 												<span
 													key={bIdx}
 													className={`fi fi-${badge.toLowerCase()}`}
-													style={{ fontSize: "12px" }}
+													style={{ fontSize: "18px" }}
 												/>
 											) : (
 												/* Image badge */
@@ -976,7 +993,7 @@ export default function CVTemplatePage() {
 													key={bIdx}
 													src={badge}
 													alt=""
-													style={{ height: "14px", objectFit: "contain" }}
+													style={{ height: "18px", objectFit: "contain" }}
 												/>
 											)
 										))}
