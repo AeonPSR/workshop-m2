@@ -61,7 +61,7 @@ export async function PUT(
           firstname = ?, lastname = ?, nationality1 = ?, nationality2 = ?, nationality3 = ?,
           player_image = ?, date_of_birth = ?, preferred_foot = ?, height = ?, weight = ?,
           primary_position = ?, secondary_position = ?, vma = ?, transfermark_url = ?, qualities = ?,
-          email = ?, phone = ?, email_agent = ?, phone_agent = ?
+          email = ?, phone = ?, email_agent = ?, phone_agent = ?, internationals = ?
         WHERE id = ?
       `).run(
         playerData.firstname,
@@ -83,6 +83,7 @@ export async function PUT(
         playerData.phone ?? null,
         playerData.email_agent ?? null,
         playerData.phone_agent ?? null,
+        playerData.internationals ?? null,
         row.player_data_id
       );
 
@@ -240,7 +241,8 @@ export async function GET(
         p.email,
         p.phone,
         p.email_agent,
-        p.phone_agent
+        p.phone_agent,
+        internationals,
       FROM Resume r
       JOIN PlayerData p ON p.id = r.player_data_id
       WHERE r.id = ?
@@ -270,7 +272,8 @@ export async function GET(
       email: row.email,
       phone: row.phone,
       email_agent: row.email_agent,
-      phone_agent: row.phone_agent
+      phone_agent: row.phone_agent,
+      internationals : row.internationals,
     };
 
     /* -------- Seasons & ClubSeason -------- */
