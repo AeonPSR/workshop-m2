@@ -35,6 +35,8 @@ export type ClubSeason = {
   division? : string ; 
   goals?: number;
   assists?: number;
+  logo_division : string ,
+  logo_club : string ,
   average_playing_time?: number;
   badge1_id?: number;
   badge2_id?: number;

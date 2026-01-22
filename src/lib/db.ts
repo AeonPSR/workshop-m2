@@ -105,22 +105,17 @@ db.exec(`
     name TEXT,
     division TEXT,
     category TEXT,
-    logo_division_id INTEGER,
-    logo_club_id INTEGER,
+    logo_division TEXT,
+    logo_club TEXT,
     matchs INTEGER DEFAULT 0,
     goals INTEGER DEFAULT 0,
     assists INTEGER DEFAULT 0,
     average_playing_time INTEGER DEFAULT 0,
     half_number INT,
-    badge1_id INTEGER,
-    badge2_id INTEGER,
-    badge3_id INTEGER,
-    FOREIGN KEY(season_id) REFERENCES Season(id) ON DELETE CASCADE,
-    FOREIGN KEY(logo_division_id) REFERENCES division_logo(id),
-    FOREIGN KEY(logo_club_id) REFERENCES logo(id),
-    FOREIGN KEY(badge1_id) REFERENCES badge(id),
-    FOREIGN KEY(badge2_id) REFERENCES badge(id),
-    FOREIGN KEY(badge3_id) REFERENCES badge(id)
+    badge1 TEXT,
+    badge2 TEXT,
+    badge3 TEXT,
+    FOREIGN KEY(season_id) REFERENCES Season(id) ON DELETE CASCADE
   );`);
 
 

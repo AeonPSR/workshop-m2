@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 
-const STAFF_PASSWORD = '2018';
-
 export async function POST(request: Request) {
   try {
     const { password } = await request.json();
+    const staffAccessCode = process.env.STAFF_ACCESS_CODE;
 
-    if (password === STAFF_PASSWORD) {
+    if (!staffAccessCode) {
+      console.error('STAFF_ACCESS_CODE is not defined in environment variables');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    if (password === staffAccessCode) {
       const response = NextResponse.json({ success: true });
       
       // Set auth cookie - expires in 24 hours

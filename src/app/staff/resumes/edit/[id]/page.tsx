@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useParams } from "next/navigation";
-
-
+import { LogoDivision } from "@/lib/types/logo_division";
+import { Logo } from "@/lib/types/logo";
+import { Badge } from "@/lib/types/badge";
 // Common nationalities (sorted alphabetically)
 const NATIONALITIES = [
   { code: "DZ", name: "Algérie" },
@@ -159,6 +160,7 @@ export default function PlayerForm() {
     weight: "",
     vma: "",
     envergure: "",
+    internationals: [""] as string[],
     shareLink: "",
     qualities: [""] as string[],
     email: "",
@@ -171,12 +173,15 @@ export default function PlayerForm() {
       isSplit: boolean;
       isCurrent: boolean;
       // Full season data
+
       club: string;
       division: string;
       category: string;
       matches: string;
       goals: string;
       assists: string;
+      clubLogo: string,
+      divisionLogo: string,
       cleanSheets: string;
       avgPlayingTime: string;
       // Split season data
@@ -186,6 +191,8 @@ export default function PlayerForm() {
         category: string;
         matches: string;
         goals: string;
+        clubLogo: string,
+        divisionLogo: string,
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
@@ -196,12 +203,14 @@ export default function PlayerForm() {
         category: string;
         matches: string;
         goals: string;
+        clubLogo: string,
+        divisionLogo: string,
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
       };
     }>,
-
+    
     // Step 5 - Formation & Trials
     formations: [] as Array<{
       year: string;
@@ -246,7 +255,7 @@ export default function PlayerForm() {
         resume.playerData.nationality2,
         resume.playerData.nationality3
       ].filter(Boolean),
-      
+
       birthDate: resume.playerData.date_of_birth ?? "",
       preferredFoot: resume.playerData.preferred_foot ?? "",
       height: resume.playerData.height?.toString() ?? "",
@@ -264,63 +273,69 @@ export default function PlayerForm() {
       cvColor: resume.cv_color ?? "#1E5EFF",
 
       // Step 4 - Career
-seasons: resume.seasons?.map((s: any) => {
-  if (s.clubSeasons?.length === 2) {
-    // Split season
-    return {
-      year: s.duration ?? "",
-      isSplit: true,
-      isCurrent: s.current_season ?? false,
-      firstHalf: {
-        club: s.clubSeasons[0].name ?? "",
-        division: s.clubSeasons[0].division ?? "",
-        category: s.clubSeasons[0].category ?? "",
-        matches: s.clubSeasons[0].matchs?.toString() ?? "",
-        goals: s.clubSeasons[0].goals?.toString() ?? "",
-        assists: s.clubSeasons[0].assists?.toString() ?? "",
-        cleanSheets: "",
-        avgPlayingTime: s.clubSeasons[0].average_playing_time?.toString() ?? ""
-      },
-      secondHalf: {
-        club: s.clubSeasons[1].name ?? "",
-        division: s.clubSeasons[1].division ?? "",
-        category: s.clubSeasons[1].category ?? "",
-        matches: s.clubSeasons[1].matchs?.toString() ?? "",
-        goals: s.clubSeasons[1].goals?.toString() ?? "",
-        assists: s.clubSeasons[1].assists?.toString() ?? "",
-        cleanSheets: "",
-        avgPlayingTime: s.clubSeasons[1].average_playing_time?.toString() ?? ""
-      },
-      // Full season fields empty
-      club: "",
-      division: "",
-      category: "",
-      matches: "",
-      goals: "",
-      assists: "",
-      cleanSheets: "",
-      avgPlayingTime: ""
-    };
-  } else {
-    // Full season
-    const club = s.clubSeasons?.[0] ?? {};
-    return {
-      year: s.duration ?? "",
-      isSplit: false,
-      isCurrent: s.current_season ?? false,
-      club: club.name ?? "",
-      division: club.division ?? "",
-      category: club.category ?? "",
-      matches: club.matchs?.toString() ?? "",
-      goals: club.goals?.toString() ?? "",
-      assists: club.assists?.toString() ?? "",
-      cleanSheets: "",
-      avgPlayingTime: club.average_playing_time?.toString() ?? "",
-      firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
-      secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
-    };
-  }
-}) ?? [],
+      seasons: resume.seasons?.map((s: any) => {
+        if (s.clubSeasons?.length === 2) {
+          // Split season
+          return {
+            year: s.duration ?? "",
+            isSplit: true,
+            isCurrent: s.current_season ?? false,
+            firstHalf: {
+              club: s.clubSeasons[0].name ?? "",
+              divisionLogo :s.clubSeasons[0].logo_division ?? "", 
+              clubLogo : s.clubSeasons[0].logo_club ?? "",
+              division: s.clubSeasons[0].division ?? "",
+              category: s.clubSeasons[0].category ?? "",
+              matches: s.clubSeasons[0].matchs?.toString() ?? "",
+              goals: s.clubSeasons[0].goals?.toString() ?? "",
+              assists: s.clubSeasons[0].assists?.toString() ?? "",
+              cleanSheets: "",
+              avgPlayingTime: s.clubSeasons[0].average_playing_time?.toString() ?? ""
+            },
+            secondHalf: {
+              club: s.clubSeasons[1].name ?? "",
+              division: s.clubSeasons[1].division ?? "",
+              divisionLogo :s.clubSeasons[1].logo_division ?? "", 
+              clubLogo : s.clubSeasons[1].logo_club ?? "",
+              category: s.clubSeasons[1].category ?? "",
+              matches: s.clubSeasons[1].matchs?.toString() ?? "",
+              goals: s.clubSeasons[1].goals?.toString() ?? "",
+              assists: s.clubSeasons[1].assists?.toString() ?? "",
+              cleanSheets: "",
+              avgPlayingTime: s.clubSeasons[1].average_playing_time?.toString() ?? ""
+            },
+            // Full season fields empty
+            club: "",
+            division: "",
+            category: "",
+            matches: "",
+            goals: "",
+            assists: "",
+            cleanSheets: "",
+            avgPlayingTime: ""
+          };
+        } else {
+          // Full season
+          const club = s.clubSeasons?.[0] ?? {};
+          return {
+            year: s.duration ?? "",
+            isSplit: false,
+            isCurrent: s.current_season ?? false,
+            club: club.name ?? "",
+            division: club.division ?? "",
+            divisionLogo : club.logo_division ?? "", 
+            clubLogo : club.logo_club ?? "",
+            category: club.category ?? "",
+            matches: club.matchs?.toString() ?? "",
+            goals: club.goals?.toString() ?? "",
+            assists: club.assists?.toString() ?? "",
+            cleanSheets: "",
+            avgPlayingTime: club.average_playing_time?.toString() ?? "",
+            firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
+            secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+          };
+        }
+      }) ?? [],
 
       // Step 5 - Formations & Trials
       formations: resume.formations?.map((f: any) => ({
@@ -341,6 +356,12 @@ seasons: resume.seasons?.map((s: any) => {
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
   const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
+  const [logos, setLogos] = useState<Logo[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [logosDivision, setLogoDivisions] = useState<LogoDivision[]>([]);
+
+
+
 
 
 
@@ -356,12 +377,12 @@ seasons: resume.seasons?.map((s: any) => {
 
     const fetchResume = async () => {
       const res = await fetch(`http://localhost:3000/api/resumes/${id}`);
-      
+
       if (!res.ok) return;
       const data = await res.json();
-      console.log("data" ,data)
+      console.log("data", data)
       hydrateFormData(data);
-      
+
     };
 
     fetchResume();
@@ -370,114 +391,148 @@ seasons: resume.seasons?.map((s: any) => {
 
 
 
-  
-
-   const submitForm = async () => {
-  try {
-    // Préparer le body
-    const body = {
-
-        cv_color: formData.cvColor,
-       composition_to_display: formData.composition,
-        comments: formData.notes,
-        playerData: {
-        player_image : formData.photoPreview,
-        nationality1: formData.nationalities[0],
-        nationality2 : formData.nationalities[1],
-        nationality3 : formData.nationalities[2],
-        firstname: formData.firstName,
-        lastname: formData.lastName,
-        date_of_birth: formData.birthDate,
-        preferred_foot: formData.preferredFoot,
-        height: Number(formData.height) || null,
-        weight: Number(formData.weight) || null,
-        primary_position: formData.mainPosition,
-        secondary_position: formData.secondaryPosition,
-        vma: Number(formData.vma) || null,
-        qualities: formData.qualities.join(','),
-        email: formData.email,
-        phone: formData.phone,
-        email_agent: formData.agentEmail,
-        phone_agent: formData.agentPhone,
-        transfermark_url: formData.transfermarktUrl,
-      },
-seasons: formData.seasons.map(s => {
-  const isSplit = s.isSplit ? 1 : 0;
-  
-  return {
-    duration: s.year || null,
-    current_season: s.isCurrent ? 1 : 0,
-    is_split: isSplit,
-    clubSeasons: isSplit === 1
-      ? [
-          // PREMIÈRE MOITIÉ (half_number: 1 dans le back)
-          {
-            name: s.firstHalf.club || null,
-            category: s.firstHalf.category || null,
-            matchs: Number(s.firstHalf.matches) || 0,
-            division : s.firstHalf.division,
-            goals: Number(s.firstHalf.goals) || 0,
-            assists: Number(s.firstHalf.assists) || 0,
-            average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
-          },
-          // DEUXIÈME MOITIÉ (half_number: 2 dans le back)
-          {
-            name: s.secondHalf.club || null,
-            category: s.secondHalf.category || null,
-            matchs: Number(s.secondHalf.matches) || 0,
-            division : s.secondHalf.division,
-            goals: Number(s.secondHalf.goals) || 0,
-            assists: Number(s.secondHalf.assists) || 0,
-            average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
-            
-          }
-        ]
-      : [
-          // SAISON COMPLÈTE
-          {
-            name: s.club || null,
-            category: s.category || null,
-            matchs: Number(s.matches) || 0,
-            division : s.division,
-            goals: Number(s.goals) || 0,
-            assists: Number(s.assists) || 0,
-            average_playing_time: Number(s.avgPlayingTime) || 0,
-          }
-        ]
-  };
-}),
-
-
-
-    
-  formations: formData.formations.map(f => ({
-        duration: f.year,
-        title: f.title,
-        details: f.details,
-      })),
-      essais: formData.trials.map(t => ({
-        club: t.club,
-        year: t.year,
-      })),
+  useEffect(() => {
+    const fetchBadges = async () => {
+      const res = await fetch("http://localhost:3000/api/badges");
+      const data = await res.json();
+      setBadges(data);
     };
 
-    const res = await fetch(`http://localhost:3000/api/resumes/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const fetchLogos = async () => {
+      const res = await fetch("http://localhost:3000/api/logos");
+      const data = await res.json();
+      setLogos(data);
+    };
 
-    const data = await res.json();
+    const fetchLogoDivisions = async () => {
+      const res = await fetch("http://localhost:3000/api/logo_divisions");
+      const data = await res.json();
+      setLogoDivisions(data);
+    };
 
-    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
 
-    alert(`CV modifié avec avec succées ${data.resumeId}`);
-    // Tu peux réinitialiser le formulaire ou rediriger ici
-  } catch (err: any) {
-    console.error(err);
-    alert(`Erreur Serveur`);
-  }
-};
+    fetchBadges();
+    fetchLogos();
+    fetchLogoDivisions();
+  }, []);
+
+
+
+
+
+
+  const submitForm = async () => {
+    try {
+      // Préparer le body
+      const body = {
+
+        cv_color: formData.cvColor,
+        composition_to_display: formData.composition,
+        comments: formData.notes,
+        playerData: {
+          player_image: formData.photoPreview,
+          nationality1: formData.nationalities[0],
+          nationality2: formData.nationalities[1],
+          nationality3: formData.nationalities[2],
+          firstname: formData.firstName,
+          lastname: formData.lastName,
+          date_of_birth: formData.birthDate,
+          preferred_foot: formData.preferredFoot,
+          height: Number(formData.height) || null,
+          weight: Number(formData.weight) || null,
+          primary_position: formData.mainPosition,
+          secondary_position: formData.secondaryPosition,
+          vma: Number(formData.vma) || null,
+          qualities: formData.qualities.join(','),
+          email: formData.email,
+          phone: formData.phone,
+          email_agent: formData.agentEmail,
+          phone_agent: formData.agentPhone,
+          transfermark_url: formData.transfermarktUrl,
+        },
+        seasons: formData.seasons.map(s => {
+          const isSplit = s.isSplit ? 1 : 0;
+
+          return {
+            duration: s.year || null,
+            current_season: s.isCurrent ? 1 : 0,
+            is_split: isSplit,
+            clubSeasons: isSplit === 1
+              ? [
+                // PREMIÈRE MOITIÉ (half_number: 1 dans le back)
+                {
+                  name: s.firstHalf.club || null,
+                  category: s.firstHalf.category || null,
+                  matchs: Number(s.firstHalf.matches) || 0,
+                  division: s.firstHalf.division,
+                  goals: Number(s.firstHalf.goals) || 0,
+                  assists: Number(s.firstHalf.assists) || 0,
+                   logo_division : s.firstHalf.divisionLogo || null,
+                  logo_club : s.firstHalf.clubLogo || null,
+                  average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
+                },
+                // DEUXIÈME MOITIÉ (half_number: 2 dans le back)
+                {
+                  name: s.secondHalf.club || null,
+                  category: s.secondHalf.category || null,
+                  matchs: Number(s.secondHalf.matches) || 0,
+                  division: s.secondHalf.division,
+                  goals: Number(s.secondHalf.goals) || 0,
+                  assists: Number(s.secondHalf.assists) || 0,
+                   logo_division : s.secondHalf.divisionLogo || null,
+                  logo_club : s.secondHalf.clubLogo || null,
+                  average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
+
+                }
+              ]
+              : [
+                // SAISON COMPLÈTE
+                {
+                  name: s.club || null,
+                  category: s.category || null,
+                  matchs: Number(s.matches) || 0,
+                  division: s.division,
+                  goals: Number(s.goals) || 0,
+                  assists: Number(s.assists) || 0,
+                  logo_division : s.divisionLogo || null,
+                  logo_club : s.clubLogo || null,
+                  average_playing_time: Number(s.avgPlayingTime) || 0,
+                }
+              ]
+          };
+        }),
+
+
+
+
+        formations: formData.formations.map(f => ({
+          duration: f.year,
+          title: f.title,
+          details: f.details,
+        })),
+        essais: formData.trials.map(t => ({
+          club: t.club,
+          year: t.year,
+        })),
+      };
+
+      const res = await fetch(`http://localhost:3000/api/resumes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+
+      alert(`CV modifié avec avec succées ${data.resumeId}`);
+      // Tu peux réinitialiser le formulaire ou rediriger ici
+    } catch (err: any) {
+      console.error(err);
+      alert(`Erreur Serveur`);
+    }
+  };
 
 
 
@@ -544,11 +599,19 @@ seasons: formData.seasons.map(s => {
           category: "",
           matches: "",
           goals: "",
+          logoDivision: "",
+          logoClub: "",
           assists: "",
           cleanSheets: "",
           avgPlayingTime: "",
-          firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
-          secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+          firstHalf: {
+            club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", logoDivision: "",
+            logoClub: "",
+          },
+          secondHalf: {
+            club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", logoDivision: "",
+            logoClub: "",
+          }
         }
       ]);
     }
@@ -658,8 +721,8 @@ seasons: formData.seasons.map(s => {
                       type="button"
                       onClick={() => setCurrentStep(step.id)}
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all cursor-pointer hover:scale-110 flex-shrink-0 ${step.id <= currentStep
-                          ? "bg-[#FF9228] text-white"
-                          : "bg-white/10 text-white/50 hover:bg-white/20"
+                        ? "bg-[#FF9228] text-white"
+                        : "bg-white/10 text-white/50 hover:bg-white/20"
                         }`}
                     >
                       {step.id}
@@ -834,8 +897,8 @@ seasons: formData.seasons.map(s => {
                         updateFormData("secondaryPosition", "");
                       }}
                       className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${formData.composition === "4-3-3"
-                          ? "bg-[#FF9228] text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                        ? "bg-[#FF9228] text-white"
+                        : "bg-white/10 text-white/70 hover:bg-white/20"
                         }`}
                     >
                       4-3-3
@@ -848,8 +911,8 @@ seasons: formData.seasons.map(s => {
                         updateFormData("secondaryPosition", "");
                       }}
                       className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${formData.composition === "3-5-2"
-                          ? "bg-[#FF9228] text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                        ? "bg-[#FF9228] text-white"
+                        : "bg-white/10 text-white/70 hover:bg-white/20"
                         }`}
                     >
                       3-5-2
@@ -1078,6 +1141,55 @@ seasons: formData.seasons.map(s => {
                   </div>
                 )}
 
+                {/* International */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-white/80">
+                      International ?
+                    </label>
+                    {formData.internationals.length < 2 && formData.internationals[0] !== "" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateFormData("internationals", [...formData.internationals, ""]);
+                        }}
+                        className="text-[#FF9228] hover:text-[#FF9228] text-sm font-medium flex items-center gap-1"
+                      >
+                        <span className="text-lg">+</span> Ajouter
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {formData.internationals.map((intl, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={intl}
+                          onChange={(e) => {
+                            const newInternationalsArr = [...formData.internationals];
+                            newInternationalsArr[index] = e.target.value;
+                            updateFormData("internationals", newInternationalsArr);
+                          }}
+                          className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
+                          placeholder="Ex: France U21"
+                        />
+                        {formData.internationals.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newInternationalsRemove = formData.internationals.filter((_, i) => i !== index);
+                              updateFormData("internationals", newInternationalsRemove);
+                            }}
+                            className="p-3 text-white/40 hover:text-red-400 transition-colors"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
                     Lien à partager
@@ -1305,6 +1417,21 @@ seasons: formData.seasons.map(s => {
                               className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                               placeholder="Club"
                             />
+
+                            <select
+                              value={season.clubLogo}
+ className="text-white bg-gray-800 p-2"
+
+                              onChange={(e) => updateSeason(index, "clubLogo", e.target.value)}
+                            >
+                              <option value="">-- Sélectionner un logo du club --</option>
+
+                              {logos.map((logo) => (
+                                <option key={logo.id} value={logo.image}>
+                                  {logo.name}
+                                </option>
+                              ))}
+                            </select>
                             <input
                               type="text"
                               value={season.division}
@@ -1312,6 +1439,22 @@ seasons: formData.seasons.map(s => {
                               className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                               placeholder="Division (ex: N2)"
                             />
+
+
+                            <select
+ className="text-white bg-gray-800 p-2"
+
+                              value={season.divisionLogo}
+                              onChange={(e) => updateSeason(index, "divisionLogo", e.target.value)}
+                            >
+                              <option value="">-- Sélectionner un logo du division --</option>
+
+                              {logosDivision.map((logoDivision) => (
+                                <option key={logoDivision.id} value={logoDivision.image}>
+                                  {logoDivision.name}
+                                </option>
+                              ))}
+                            </select>
                             <input
                               type="text"
                               value={season.category}
@@ -1349,6 +1492,9 @@ seasons: formData.seasons.map(s => {
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                                   placeholder="Buts"
                                 />
+
+
+
                                 <input
                                   type="number"
                                   value={season.assists}
@@ -1375,8 +1521,8 @@ seasons: formData.seasons.map(s => {
                                 type="button"
                                 onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "first" })}
                                 className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${(activeHalfTab[index] || "first") === "first"
-                                    ? "bg-[#FF9228] text-white"
-                                    : "bg-white/10 text-white/80 hover:bg-white/10"
+                                  ? "bg-[#FF9228] text-white"
+                                  : "bg-white/10 text-white/80 hover:bg-white/10"
                                   }`}
                               >
                                 1ère moitié
@@ -1385,8 +1531,8 @@ seasons: formData.seasons.map(s => {
                                 type="button"
                                 onClick={() => setActiveHalfTab({ ...activeHalfTab, [index]: "second" })}
                                 className={`flex-1 px-3 py-2 text-sm rounded-lg transition-all ${(activeHalfTab[index] || "first") === "second"
-                                    ? "bg-[#FF9228] text-white"
-                                    : "bg-white/10 text-white/80 hover:bg-white/10"
+                                  ? "bg-[#FF9228] text-white"
+                                  : "bg-white/10 text-white/80 hover:bg-white/10"
                                   }`}
                               >
                                 2ème moitié
@@ -1403,6 +1549,21 @@ seasons: formData.seasons.map(s => {
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                                   placeholder="Club"
                                 />
+
+                                 <select
+                              value={season.clubLogo}
+ className="text-white bg-gray-800 p-2"
+
+                              onChange={(e) => updateSeasonHalf(index, "firstHalf" , "clubLogo", e.target.value)}
+                            >
+                              <option value="">-- Sélectionner un logo du club --</option>
+
+                              {logos.map((logo) => (
+                                <option key={logo.id} value={logo.image}>
+                                  {logo.name}
+                                </option>
+                              ))}
+                            </select>
                                 <input
                                   type="text"
                                   value={season.firstHalf.division}
@@ -1410,6 +1571,19 @@ seasons: formData.seasons.map(s => {
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                                   placeholder="Division (ex: N2)"
                                 />
+    <select           className="text-white bg-gray-800 p-2"
+
+                              value={season.divisionLogo}
+                              onChange={(e) => updateSeasonHalf(index,"firstHalf","divisionLogo", e.target.value)}
+                            >
+                              <option value="">-- Sélectionner un logo du division --</option>
+
+                              {logosDivision.map((logoDivision) => (
+                                <option key={logoDivision.id} value={logoDivision.image}>
+                                  {logoDivision.name}
+                                </option>
+                              ))}
+                            </select>
                                 <input
                                   type="text"
                                   value={season.firstHalf.category}
@@ -1471,6 +1645,20 @@ seasons: formData.seasons.map(s => {
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                                   placeholder="Club"
                                 />
+
+                                       <select
+                              value={season.clubLogo}
+ className="text-white bg-gray-800"
+                              onChange={(e) => updateSeasonHalf(index, "secondHalf" , "clubLogo", e.target.value)}
+                            >
+                              <option value="">-- Sélectionner un logo du club --</option>
+
+                              {logos.map((logo) => (
+                                <option key={logo.id} value={logo.image}>
+                                  {logo.name}
+                                </option>
+                              ))}
+                            </select>
                                 <input
                                   type="text"
                                   value={season.secondHalf.division}
@@ -1478,6 +1666,20 @@ seasons: formData.seasons.map(s => {
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                                   placeholder="Division (ex: N2)"
                                 />
+
+                                  <select
+ className="text-white bg-gray-800 p-2"
+                              value={season.divisionLogo}
+                              onChange={(e) => updateSeasonHalf(index,"secondHalf","divisionLogo", e.target.value)}
+                            >
+                              <option value="">-- Sélectionner un logo du division --</option>
+
+                              {logosDivision.map((logoDivision) => (
+                                <option key={logoDivision.id} value={logoDivision.image}>
+                                  {logoDivision.name}
+                                </option>
+                              ))}
+                            </select>
                                 <input
                                   type="text"
                                   value={season.secondHalf.category}
@@ -1673,8 +1875,8 @@ seasons: formData.seasons.map(s => {
                         type="button"
                         onClick={() => updateFormData("cvColor", color.value)}
                         className={`w-10 h-10 rounded-full border-4 transition-all ${formData.cvColor === color.value
-                            ? "border-white scale-110"
-                            : "border-transparent hover:scale-105"
+                          ? "border-white scale-110"
+                          : "border-transparent hover:scale-105"
                           }`}
                         style={{ backgroundColor: color.value }}
                         title={color.name}
@@ -1714,8 +1916,8 @@ seasons: formData.seasons.map(s => {
                 onClick={prevStep}
                 disabled={currentStep === 1}
                 className={`px-6 py-3 rounded-full font-medium transition-all ${currentStep === 1
-                    ? "bg-white/10 text-white/40 cursor-not-allowed"
-                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                  ? "bg-white/10 text-white/40 cursor-not-allowed"
+                  : "bg-white/10 text-white/80 hover:bg-white/20"
                   }`}
               >
                 Précédent
@@ -1767,8 +1969,8 @@ seasons: formData.seasons.map(s => {
                     setIsNationalityModalOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${formData.nationalities[editingNationalityIndex] === nation.code
-                      ? "bg-[#FF9228]/20 text-[#FF9228]"
-                      : "text-white hover:bg-white/10"
+                    ? "bg-[#FF9228]/20 text-[#FF9228]"
+                    : "text-white hover:bg-white/10"
                     }`}
                 >
                   <span className="font-medium">{nation.name}</span>

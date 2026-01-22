@@ -155,6 +155,7 @@ export default function PlayerForm() {
     weight: "",
     vma: "",
     envergure: "",
+    internationals: [""] as string[],
     shareLink: "",
     qualities: [""] as string[],
     email: "",
@@ -222,6 +223,8 @@ export default function PlayerForm() {
 
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
+  const [isInternationalModalOpen, setIsInternationalModalOpen] = useState(false);
+  const [editingInternationalIndex, setEditingInternationalIndex] = useState(0);
   const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
 
   /* ============================================================================
@@ -239,6 +242,7 @@ export default function PlayerForm() {
     firstName: "Kylian",
     lastName: "Mbappé",
     photo: null as File | null,
+    internationals: ["France"] as string[],
     photoPreview: "/DEMO-mbappe.jpg", // ⚠️ DEMO - Image in public folder
     composition: "4-3-3" as "4-3-3" | "3-5-2",
     mainPosition: "AIG",
@@ -630,9 +634,9 @@ useEffect(() => {
       case 3: // Profil - PROFIL section
         return { top: '35%', left: '0%', width: '50%', height: '65%' };
       case 4: // Carrière - CARRIÈRE & STATISTIQUES section
-        return { top: '22%', left: '43%', width: '60%', height: '48%' };
+        return { top: '22%', left: '43%', width: '57%', height: '48%' };
       case 5: // Formations - QUALITÉS section
-        return { top: '70%', left: '43%', width: '60%', height: '30%' };
+        return { top: '70%', left: '43%', width: '57%', height: '30%' };
       case 6: // Contact - CONTACT section
         return { top: '0%', left: '0%', width: '0%', height: '0%' };
       default:
@@ -1081,6 +1085,66 @@ useEffect(() => {
                     />
                   </div>
                 )}
+
+                {/* International */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-white/80">
+                      International ?
+                    </label>
+                    {formData.internationals.length < 2 && formData.internationals[0] !== "" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateFormData("internationals", [...formData.internationals, ""]);
+                        }}
+                        className="text-[#FF9228] hover:text-[#FF9228] text-sm font-medium flex items-center gap-1"
+                      >
+                        <span className="text-lg">+</span> Ajouter
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {formData.internationals.map((intlCode, index) => {
+                      const nation = NATIONALITIES.find(n => n.code === intlCode);
+                      return (
+                        <div key={index} className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingInternationalIndex(index);
+                              setIsInternationalModalOpen(true);
+                            }}
+                            className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-left flex items-center justify-between hover:border-[#FF9228]/50 transition-colors"
+                          >
+                            {nation ? (
+                              <span className="text-white">{nation.name}</span>
+                            ) : (
+                              <span className="text-white/40">Sélectionner une équipe nationale</span>
+                            )}
+                            <span className="text-white/40">▼</span>
+                          </button>
+                          {(formData.internationals.length > 1 || intlCode !== "") && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (formData.internationals.length > 1) {
+                                  const newInternationalsRemove = formData.internationals.filter((_, i) => i !== index);
+                                  updateFormData("internationals", newInternationalsRemove);
+                                } else {
+                                  updateFormData("internationals", [""]);
+                                }
+                              }}
+                              className="p-3 text-white/40 hover:text-red-400 transition-colors"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
@@ -1849,6 +1913,44 @@ useEffect(() => {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
                     formData.nationalities[editingNationalityIndex] === nation.code
+                      ? "bg-[#FF9228]/20 text-[#FF9228]"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                >
+                  <span className="font-medium">{nation.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* International Modal */}
+      {isInternationalModalOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Sélectionner une équipe nationale</h3>
+              <button
+                onClick={() => setIsInternationalModalOpen(false)}
+                className="text-white/50 hover:text-white/80 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[60vh] space-y-1">
+              {NATIONALITIES.map((nation) => (
+                <button
+                  key={nation.code}
+                  type="button"
+                  onClick={() => {
+                    const newInternationalsArr = [...formData.internationals];
+                    newInternationalsArr[editingInternationalIndex] = nation.code;
+                    updateFormData("internationals", newInternationalsArr);
+                    setIsInternationalModalOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                    formData.internationals[editingInternationalIndex] === nation.code
                       ? "bg-[#FF9228]/20 text-[#FF9228]"
                       : "text-white hover:bg-white/10"
                   }`}

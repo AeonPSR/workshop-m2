@@ -54,6 +54,35 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // ==================== DEMO SEED BACKEND ====================
+  const [seedStatus, setSeedStatus] = useState<string | null>(null)
+
+  const handleSeedBackend = async () => {
+    setSeedStatus("Seeding...")
+    try {
+      const res = await fetch("/api/demo-seed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}), // Seed all categories
+      })
+      const data = await res.json()
+      if (data.success) {
+        const badgeResult = data.results.find((r: any) => r.category === "badges")
+        const divisionResult = data.results.find((r: any) => r.category === "divisions")
+        const clubResult = data.results.find((r: any) => r.category === "clubs")
+        setSeedStatus(`✓ ${badgeResult?.inserted || 0} badges, ${divisionResult?.inserted || 0} divisions, ${clubResult?.inserted || 0} clubs`)
+        setTimeout(() => setSeedStatus(null), 3000)
+      } else {
+        setSeedStatus("✗ Erreur")
+        setTimeout(() => setSeedStatus(null), 3000)
+      }
+    } catch (err) {
+      setSeedStatus("✗ Erreur réseau")
+      setTimeout(() => setSeedStatus(null), 3000)
+    }
+  }
+  // ==================== END DEMO SEED BACKEND ====================
+
   return (
     <DemoModeContext.Provider value={{ 
       isDemoMode, 
@@ -75,6 +104,17 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
             >
               ✨ Remplir le formulaire
             </button>
+          )}
+          <button
+            onClick={handleSeedBackend}
+            className="bg-[#1E5EFF] text-white text-xs font-bold px-3 py-2 rounded hover:bg-[#3d73ff] transition-colors cursor-pointer"
+          >
+            🗄️ Remplir la BDD
+          </button>
+          {seedStatus && (
+            <div className="text-xs text-white bg-black/80 px-2 py-1 rounded">
+              {seedStatus}
+            </div>
           )}
         </div>
       )}

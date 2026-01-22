@@ -100,8 +100,8 @@ export async function PUT(
       `);
       const clubStmt = db.prepare(`
         INSERT INTO Club_Season 
-        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number,logo_club, logo_division  )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ? , ?)
       `);
 
        seasons?.forEach(s => {
@@ -121,11 +121,11 @@ export async function PUT(
 
           clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].division , s.clubSeasons[0].category ?? null,
             s.clubSeasons[0].matchs ?? 0, s.clubSeasons[0].goals ?? 0, s.clubSeasons[0].assists ?? 0,
-            s.clubSeasons[0].average_playing_time ?? 0, 1); // first half
+            s.clubSeasons[0].average_playing_time ?? 0, 1 , s.clubSeasons[0].logo_club , s.clubSeasons[0].logo_division); // first half
 
           clubStmt.run(seasonId, s.clubSeasons[1].name ?? null,  s.clubSeasons[1].division, s.clubSeasons[1].category ?? null,
             s.clubSeasons[1].matchs ?? 0, s.clubSeasons[1].goals ?? 0, s.clubSeasons[1].assists ?? 0,
-            s.clubSeasons[1].average_playing_time ?? 0, 2); // second half
+            s.clubSeasons[1].average_playing_time ?? 0, 2,  s.clubSeasons[1].logo_club , s.clubSeasons[1].logo_division); // second half
 
         } else {
           // Full season → exactly 1 clubSeason
@@ -142,7 +142,11 @@ export async function PUT(
             s.clubSeasons[0].goals ?? 0,
             s.clubSeasons[0].assists ?? 0,
             s.clubSeasons[0].average_playing_time ?? 0,
-            null // no half
+            null, // no half
+              s.clubSeasons[0].logo_club,
+
+            s.clubSeasons[0].logo_division ,
+
           );
         }
       });
@@ -286,6 +290,8 @@ export async function GET(
             goals: c.goals,
             assists: c.assists,
             division : c.division,
+            logo_club : c.logo_club,
+            logo_division : c.logo_division,
             average_playing_time: c.average_playing_time,
             badge1_id: c.badge1_id,
             badge2_id: c.badge2_id,
