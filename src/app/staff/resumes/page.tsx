@@ -54,7 +54,7 @@ export default function Page() {
     return (
 <section className="p-9 pt-20 flex flex-col items-center gap-8 w-full">
   <div className="flex justify-center items-center w-full">
-    <h1 className="text-white font-bold text-3xl">Gestion des Cvs</h1>
+    <h1 className="text-white font-bold text-3xl">Gestion des CVs</h1>
    
   </div>
 
