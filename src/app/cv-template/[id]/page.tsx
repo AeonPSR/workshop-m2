@@ -226,6 +226,22 @@ seasons: [
 	],
 	},
 	{
+	year: "Juil. 2023 - Déc. 2023",
+	club: "Paris Saint-Germain",
+	clubLogo: "/demo-club/OL.png",
+	division: "Ligue 1",
+	divisionLogo: "/demo-divisions/ligue 1 fond noir.png",
+	category: "Sénior",
+	isCurrent: false,
+	matches: "12",
+	goals: "8",
+	assists: "3",
+	avgPlayingTime: "70",
+	comments: [
+		{ text: "Début de saison au PSG", badges: [] },
+	],
+	},
+	{
 	year: "Jan. 2023 - Juin 2023",
 	club: "AS Monaco",
 	clubLogo: "/demo-club/Logo_Olympique_de_Marseille.svg.webp",
@@ -242,26 +258,14 @@ seasons: [
 		{ text: "Première sélection avec le Maroc U18", badges: ["MA", "/demo-badges/trophy.png"] },
 	],
 	},
-	{
-	year: "Juil. 2022 - Déc. 2022",
-	club: "Paris Saint-Germain",
-	clubLogo: "/demo-club/OL.png",
-	division: "Ligue 1",
-	divisionLogo: "/demo-divisions/ligue 1 fond noir.png",
-	category: "Sénior",
-	isCurrent: false,
-	matches: "12",
-	goals: "8",
-	assists: "3",
-	avgPlayingTime: "70",
-	comments: [
-		{ text: "Début de saison au PSG", badges: [] },
-	],
-	},
 ],
 formations: [
 	{ year: "2013-2017", title: "Centre de Formation AS Monaco", details: "Formation complète" },
 	{ year: "2011-2013", title: "INF Clairefontaine", details: "Pôle Espoirs" },
+],
+essais: [
+	{ year: "2022", club: "Manchester City", details: "Essai concluant" },
+	{ year: "2021", club: "FC Barcelona", details: "Marque d'intérêt" },
 ],
 };
 
@@ -730,6 +734,20 @@ return (
 		</div>
 		</div>
 
+		{/* ============== POWERED BY SCOUTIFY ============== */}
+		<div style={{
+			position: "absolute",
+			bottom: "10px",
+			left: "50px",
+			width: "280px",
+			textAlign: "center",
+			fontSize: "10px",
+			color: "white",
+			opacity: 0.6,
+		}}>
+			Powered by Scoutify
+		</div>
+
 		{/* ============== CARRIÈRE & STATISTIQUES ============== */}
 		<div
 			style={{
@@ -746,7 +764,6 @@ return (
 					key={idx}
 					style={{
 						marginBottom: "15px",
-						paddingBottom: "10px",
 						borderBottom: idx < data.seasons.length - 1 ? "1px solid #ddd" : "none",
 						display: "flex",
 						justifyContent: "space-between",
@@ -844,6 +861,52 @@ return (
 					)}
 				</div>
 			))}
+
+			{/* ============== FORMATIONS ============== */}
+			{data.formations && data.formations.length > 0 && (
+				<div style={{  }}>
+					<div style={{ 
+						fontWeight: "bold", 
+						fontSize: "12px", 
+						color: data.cvColor,
+						marginBottom: "6px",
+						textTransform: "uppercase"
+					}}>
+						Formations
+					</div>
+					{data.formations.map((formation, idx) => (
+						<div key={idx} style={{ fontSize: "11px", marginBottom: "4px" }}>
+							<span style={{ color: "#666" }}>{formation.year}</span>
+							<span> - </span>
+							<span style={{ fontWeight: "500" }}>{formation.title}</span>
+							{formation.details && <span style={{ color: "#666" }}> ({formation.details})</span>}
+						</div>
+					))}
+				</div>
+			)}
+
+			{/* ============== ESSAIS / MARQUES D'INTÉRÊT ============== */}
+			{data.essais && data.essais.length > 0 && (
+				<div style={{ marginTop: "15px" }}>
+					<div style={{ 
+						fontWeight: "bold", 
+						fontSize: "12px", 
+						color: data.cvColor,
+						marginBottom: "6px",
+						textTransform: "uppercase"
+					}}>
+						Essais / Marques d'intérêt
+					</div>
+					{data.essais.map((essai, idx) => (
+						<div key={idx} style={{ fontSize: "11px", marginBottom: "4px" }}>
+							<span style={{ color: "#666" }}>{essai.year}</span>
+							<span> - </span>
+							<span style={{ fontWeight: "500" }}>{essai.club}</span>
+							{essai.details && <span style={{ color: "#666" }}> ({essai.details})</span>}
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	</div>
 	</div>
