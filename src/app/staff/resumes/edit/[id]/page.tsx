@@ -160,6 +160,7 @@ export default function PlayerForm() {
     weight: "",
     vma: "",
     envergure: "",
+    internationals: [""] as string[],
     shareLink: "",
     qualities: [""] as string[],
     email: "",
@@ -1024,6 +1025,55 @@ export default function PlayerForm() {
                     />
                   </div>
                 )}
+
+                {/* International */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-white/80">
+                      International ?
+                    </label>
+                    {formData.internationals.length < 2 && formData.internationals[0] !== "" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateFormData("internationals", [...formData.internationals, ""]);
+                        }}
+                        className="text-[#FF9228] hover:text-[#FF9228] text-sm font-medium flex items-center gap-1"
+                      >
+                        <span className="text-lg">+</span> Ajouter
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {formData.internationals.map((intl, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={intl}
+                          onChange={(e) => {
+                            const newInternationalsArr = [...formData.internationals];
+                            newInternationalsArr[index] = e.target.value;
+                            updateFormData("internationals", newInternationalsArr);
+                          }}
+                          className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
+                          placeholder="Ex: France U21"
+                        />
+                        {formData.internationals.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newInternationalsRemove = formData.internationals.filter((_, i) => i !== index);
+                              updateFormData("internationals", newInternationalsRemove);
+                            }}
+                            className="p-3 text-white/40 hover:text-red-400 transition-colors"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
