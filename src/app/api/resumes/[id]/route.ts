@@ -293,11 +293,6 @@ export async function GET(
             logo_club : c.logo_club,
             logo_division : c.logo_division,
             average_playing_time: c.average_playing_time,
-            badge1_id: c.badge1_id,
-            badge2_id: c.badge2_id,
-            badge3_id: c.badge3_id,
-            logo_club_id: c.logo_club_id,
-            logo_division_id: c.logo_division_id,
             half_number: c.half_number ,
           }));
 

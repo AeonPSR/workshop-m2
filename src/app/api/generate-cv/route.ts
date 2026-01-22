@@ -4,6 +4,8 @@ import puppeteer from "puppeteer";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id") || "demo";
+
+
   
   // Get the base URL from the request
   const protocol = request.headers.get("x-forwarded-proto") || "http";

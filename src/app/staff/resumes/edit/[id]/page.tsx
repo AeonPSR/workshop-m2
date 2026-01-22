@@ -530,6 +530,7 @@ export default function PlayerForm() {
       // Tu peux réinitialiser le formulaire ou rediriger ici
     } catch (err: any) {
       console.error(err);
+      
       alert(`Erreur Serveur`);
     }
   };

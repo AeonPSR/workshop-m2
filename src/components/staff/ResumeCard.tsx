@@ -30,7 +30,7 @@ export default function ResumeCard({
    const handleGenerateCV = async () => {
     setIsGenerating(true)
     try {
-      const response = await fetch("/api/generate-cv?id=demo")
+      const response = await fetch(`/api/generate-cv?id=${id}`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
