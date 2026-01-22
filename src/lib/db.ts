@@ -103,6 +103,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     season_id INTEGER NOT NULL,
     name TEXT,
+    division TEXT,
     category TEXT,
     logo_division_id INTEGER,
     logo_club_id INTEGER,

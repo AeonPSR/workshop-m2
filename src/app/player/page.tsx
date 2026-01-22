@@ -1,9 +1,9 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
+import { useDemoMode } from "@/context/DemoModeContext"; // ⚠️ DEMO MODE - REMOVE FOR PRODUCTION
+import { getThumbnailURL } from "@/lib/utils/methods";
 // Common nationalities (sorted alphabetically)
 const NATIONALITIES = [
   { code: "DZ", name: "Algérie" },
@@ -175,6 +175,7 @@ export default function PlayerForm() {
       assists: string;
       cleanSheets: string;
       avgPlayingTime: string;
+      comments: string[];
       // Split season data
       firstHalf: {
         club: string;
@@ -184,7 +185,9 @@ export default function PlayerForm() {
         goals: string;
         assists: string;
         cleanSheets: string;
-        avgPlayingTime: string;};
+        avgPlayingTime: string;
+        comments: string[];
+      };
       secondHalf: {
         club: string;
         division: string;
@@ -194,6 +197,7 @@ export default function PlayerForm() {
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
+        comments: string[];
       };
     }>,
     
@@ -220,21 +224,116 @@ export default function PlayerForm() {
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
   const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
 
+  /* ============================================================================
+     ██████╗ ███████╗███╗   ███╗ ██████╗     ███╗   ███╗ ██████╗ ██████╗ ███████╗
+     ██╔══██╗██╔════╝████╗ ████║██╔═══██╗    ████╗ ████║██╔═══██╗██╔══██╗██╔════╝
+     ██║  ██║█████╗  ██╔████╔██║██║   ██║    ██╔████╔██║██║   ██║██║  ██║█████╗  
+     ██║  ██║██╔══╝  ██║╚██╔╝██║██║   ██║    ██║╚██╔╝██║██║   ██║██║  ██║██╔══╝  
+     ██████╔╝███████╗██║ ╚═╝ ██║╚██████╔╝    ██║ ╚═╝ ██║╚██████╔╝██████╔╝███████╗
+     ╚═════╝ ╚══════╝╚═╝     ╚═╝ ╚═════╝     ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+     
+  ============================================================================ */
+  const { registerPrefillCallback } = useDemoMode();
+
+  const DEMO_PREFILL_DATA = {
+    firstName: "Kylian",
+    lastName: "Mbappé",
+    photo: null as File | null,
+    photoPreview: "/DEMO-mbappe.jpg", // ⚠️ DEMO - Image in public folder
+    composition: "4-3-3" as "4-3-3" | "3-5-2",
+    mainPosition: "AIG",
+    secondaryPosition: "AC",
+    nationalities: ["FR", "CM"] as string[],
+    birthDate: "1998-12-20",
+    preferredFoot: "Droit",
+    height: "178",
+    weight: "73",
+    vma: "22.5",
+    envergure: "180",
+    shareLink: "https://www.youtube.com/watch?v=GYiyIacyTUc", // ⚠️ DEMO
+    qualities: ["Vitesse", "Dribble", "Finition"] as string[],
+    email: "kylian.mbappe@example.com",
+    phone: "+33 6 12 34 56 78",
+    cvColor: "#0F2A43",
+    seasons: [
+      {
+        year: "2023-2024",
+        isSplit: false,
+        isCurrent: true,
+        club: "Paris Saint-Germain",
+        division: "Ligue 1",
+        category: "Sénior",
+        matches: "29",
+        goals: "27",
+        assists: "7",
+        cleanSheets: "0",
+        avgPlayingTime: "85",
+        comments: ["Meilleur buteur du championnat", "Capitaine de l'équipe"],
+        firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+        secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+      },
+      {
+        year: "2022-2023",
+        isSplit: false,
+        isCurrent: false,
+        club: "Paris Saint-Germain",
+        division: "Ligue 1",
+        category: "Sénior",
+        matches: "34",
+        goals: "29",
+        assists: "5",
+        cleanSheets: "0",
+        avgPlayingTime: "87",
+        comments: ["Champion de France"],
+        firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+        secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+      },
+    ],
+    formations: [
+      { year: "2013-2017", title: "Centre de Formation AS Monaco", details: "Formation complète au poste d'attaquant" },
+      { year: "2011-2013", title: "INF Clairefontaine", details: "Pôle Espoirs" },
+    ],
+    trials: [
+      { club: "Real Madrid", year: "2012" },
+      { club: "Chelsea FC", year: "2012" },
+    ],
+    agentEmail: "agent@example.com",
+    agentPhone: "+33 1 23 45 67 89",
+    videoUrl: "https://youtube.com/watch?v=example",
+    transfermarktUrl: "https://www.transfermarkt.com/kylian-mbappe/profil/spieler/342229",
+    notes: "Joueur exceptionnel avec un potentiel de classe mondiale.",
+  };
+
+  const handleDemoPrefill = () => {
+    setFormData(DEMO_PREFILL_DATA);
+    setCurrentStep(1);
+  };
+
+  useEffect(() => {
+    registerPrefillCallback(handleDemoPrefill);
+    return () => registerPrefillCallback(null);
+  }, [registerPrefillCallback]);
+  /* ============================================================================
+     END OF DEMO MODE CODE - REMOVE THIS ENTIRE SECTION FOR PRODUCTION
+  ============================================================================ */
 
 
 
 
+
+  
 
    const submitForm = async () => {
   try {
     // Préparer le body
     const body = {
 
+        
         cv_color: formData.cvColor,
-      composition_to_display: formData.composition,
+       composition_to_display: formData.composition,
         comments: formData.notes,
-      playerData: {
-        player_image : "",
+        playerData: {
+        player_image : formData.photoPreview,
         nationality1: formData.nationalities[0],
         nationality2 : formData.nationalities[1],
         nationality3 : formData.nationalities[2],
@@ -254,41 +353,52 @@ export default function PlayerForm() {
         phone_agent: formData.agentPhone,
         transfermark_url: formData.transfermarktUrl,
       },
+seasons: formData.seasons.map(s => {
+  const isSplit = s.isSplit ? 1 : 0;
+  
+  return {
+    duration: s.year || null,
+    current_season: s.isCurrent ? 1 : 0,
+    is_split: isSplit,
+    clubSeasons: isSplit === 1
+      ? [
+          // PREMIÈRE MOITIÉ (half_number: 1 dans le back)
+          {
+            name: s.firstHalf.club || null,
+            category: s.firstHalf.category || null,
+            matchs: Number(s.firstHalf.matches) || 0,
+            division : s.firstHalf.division,
+            goals: Number(s.firstHalf.goals) || 0,
+            assists: Number(s.firstHalf.assists) || 0,
+            average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
+          },
+          // DEUXIÈME MOITIÉ (half_number: 2 dans le back)
+          {
+            name: s.secondHalf.club || null,
+            category: s.secondHalf.category || null,
+            matchs: Number(s.secondHalf.matches) || 0,
+            division : s.secondHalf.division,
+            goals: Number(s.secondHalf.goals) || 0,
+            assists: Number(s.secondHalf.assists) || 0,
+            average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
+            
+          }
+        ]
+      : [
+          // SAISON COMPLÈTE
+          {
+            name: s.club || null,
+            category: s.category || null,
+            matchs: Number(s.matches) || 0,
+            division : s.division,
+            goals: Number(s.goals) || 0,
+            assists: Number(s.assists) || 0,
+            average_playing_time: Number(s.avgPlayingTime) || 0,
+          }
+        ]
+  };
+}),
 
-      seasons: formData.seasons.map(s => ({
-        duration: s.year,
-        current_season: s.isCurrent,
-        is_split: s.isSplit ? true : false,
-        clubSeasons: s.isSplit 
-          ? [
-              {
-                name: s.firstHalf.club,
-                category: s.firstHalf.category,
-                matchs: Number(s.firstHalf.matches) || 0,
-                goals: Number(s.firstHalf.goals) || 0,
-                assists: Number(s.firstHalf.assists) || 0,
-                average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
-              },
-              {
-                name: s.secondHalf.club,
-                category: s.secondHalf.category,
-                matchs: Number(s.secondHalf.matches) || 0,
-                goals: Number(s.secondHalf.goals) || 0,
-                assists: Number(s.secondHalf.assists) || 0,
-                average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
-              }
-            ]
-          : [
-              {
-                name: s.club,
-                category: s.category,
-                matchs: Number(s.matches) || 0,
-                goals: Number(s.goals) || 0,
-                assists: Number(s.assists) || 0,
-                average_playing_time: Number(s.avgPlayingTime) || 0,
-              }
-            ]
-      })),
 
 
     
@@ -324,15 +434,20 @@ export default function PlayerForm() {
 
 
 
+useEffect(() => {
+  console.log("seasons :" ,formData.seasons)
+} , [formData])
+
   const updateFormData = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange =  async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       updateFormData("photo", file);
-      updateFormData("photoPreview", URL.createObjectURL(file));
+      const imageUrl = await getThumbnailURL(file)
+      updateFormData("photoPreview",imageUrl);
     }
   };
 
@@ -388,8 +503,9 @@ export default function PlayerForm() {
           assists: "",
           cleanSheets: "",
           avgPlayingTime: "",
-          firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
-          secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+          comments: [],
+          firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] },
+          secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", comments: [] }
         }
       ]);
     }
@@ -421,6 +537,48 @@ export default function PlayerForm() {
 
   const removeSeason = (index: number) => {
     updateFormData("seasons", formData.seasons.filter((_, i) => i !== index));
+  };
+
+  // Comment management for seasons
+  const addSeasonComment = (seasonIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    if (newSeasons[seasonIndex].comments.length < 3) {
+      newSeasons[seasonIndex].comments = [...newSeasons[seasonIndex].comments, ""];
+      updateFormData("seasons", newSeasons);
+    }
+  };
+
+  const updateSeasonComment = (seasonIndex: number, commentIndex: number, value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex].comments[commentIndex] = value;
+    updateFormData("seasons", newSeasons);
+  };
+
+  const removeSeasonComment = (seasonIndex: number, commentIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex].comments = newSeasons[seasonIndex].comments.filter((_, i) => i !== commentIndex);
+    updateFormData("seasons", newSeasons);
+  };
+
+  // Comment management for half seasons
+  const addHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf") => {
+    const newSeasons = [...formData.seasons];
+    if (newSeasons[seasonIndex][half].comments.length < 3) {
+      newSeasons[seasonIndex][half].comments = [...newSeasons[seasonIndex][half].comments, ""];
+      updateFormData("seasons", newSeasons);
+    }
+  };
+
+  const updateHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf", commentIndex: number, value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex][half].comments[commentIndex] = value;
+    updateFormData("seasons", newSeasons);
+  };
+
+  const removeHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf", commentIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex][half].comments = newSeasons[seasonIndex][half].comments.filter((_, i) => i !== commentIndex);
+    updateFormData("seasons", newSeasons);
   };
 
   const addFormation = () => {
@@ -977,23 +1135,6 @@ export default function PlayerForm() {
                   </div>
                 </div>
 
-                {formData.qualities.some(q => q) && (
-                  <div>
-                    <p className="text-sm font-medium text-white/80 mb-2">Aperçu des qualités :</p>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.qualities.filter(q => q).map((q, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 rounded-full text-sm text-white"
-                          style={{ backgroundColor: formData.cvColor }}
-                        >
-                          {q}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div className="border-t border-white/10 pt-6">
                   <h3 className="text-lg font-medium text-white mb-4">Contact</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1211,6 +1352,36 @@ export default function PlayerForm() {
                                 />
                               </>
                             )}
+                            {/* Comments section */}
+                            <div className="col-span-2 space-y-2">
+                              {season.comments.map((comment, commentIndex) => (
+                                <div key={commentIndex} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={comment}
+                                    onChange={(e) => updateSeasonComment(index, commentIndex, e.target.value)}
+                                    className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                    placeholder="Commentaire (ex: Champion, Coupe...)"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSeasonComment(index, commentIndex)}
+                                    className="text-red-500 hover:text-red-700 p-1"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                              {season.comments.length < 3 && (
+                                <button
+                                  type="button"
+                                  onClick={() => addSeasonComment(index)}
+                                  className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                >
+                                  <span className="text-lg">+</span> Ajouter un commentaire
+                                </button>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           /* Split season - tabs */
@@ -1309,6 +1480,36 @@ export default function PlayerForm() {
                                     />
                                   </>
                                 )}
+                                {/* Comments section for firstHalf */}
+                                <div className="col-span-2 space-y-2">
+                                  {season.firstHalf.comments.map((comment, commentIndex) => (
+                                    <div key={commentIndex} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => updateHalfSeasonComment(index, "firstHalf", commentIndex, e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                        placeholder="Commentaire (ex: Champion, Coupe...)"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeHalfSeasonComment(index, "firstHalf", commentIndex)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {season.firstHalf.comments.length < 3 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => addHalfSeasonComment(index, "firstHalf")}
+                                      className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                    >
+                                      <span className="text-lg">+</span> Ajouter un commentaire
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ) : (
                               <div className="grid grid-cols-2 gap-3">
@@ -1377,6 +1578,36 @@ export default function PlayerForm() {
                                     />
                                   </>
                                 )}
+                                {/* Comments section for secondHalf */}
+                                <div className="col-span-2 space-y-2">
+                                  {season.secondHalf.comments.map((comment, commentIndex) => (
+                                    <div key={commentIndex} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => updateHalfSeasonComment(index, "secondHalf", commentIndex, e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                        placeholder="Commentaire (ex: Champion, Coupe...)"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeHalfSeasonComment(index, "secondHalf", commentIndex)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {season.secondHalf.comments.length < 3 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => addHalfSeasonComment(index, "secondHalf")}
+                                      className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                    >
+                                      <span className="text-lg">+</span> Ajouter un commentaire
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>

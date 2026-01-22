@@ -32,6 +32,7 @@ export type ClubSeason = {
   name?: string;
   category?: string;
   matchs?: number;
+  division? : string ; 
   goals?: number;
   assists?: number;
   average_playing_time?: number;
@@ -87,7 +88,6 @@ export async function POST(req: NextRequest) {
     const { playerData, cv_color, composition_to_display, comments, seasons, formations, essais } = body;
 
     const resumeId = db.transaction(() => {
-      // 1️⃣ PlayerData
       const playerStmt = db.prepare(`
         INSERT INTO PlayerData (
           firstname, lastname, nationality1, nationality2, nationality3,
@@ -134,8 +134,8 @@ export async function POST(req: NextRequest) {
       `);
       const clubStmt = db.prepare(`
         INSERT INTO Club_Season 
-        (season_id, name, category, matchs, goals, assists, average_playing_time, half_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       seasons?.forEach(s => {
@@ -143,21 +143,21 @@ export async function POST(req: NextRequest) {
           resumeId,
           s.duration ?? null,
           s.current_season ? 1 : 0,
-          s.is_split ? 1 : 0 // 1 = split season, 0 = full season
+          s.is_split ? 1 : 0 
         );
         const seasonId = seasonInfo.lastInsertRowid;
-
+        console.log("is_splite :" , s.is_split)
         if (s.is_split) {
           // Half season → exactly 2 clubSeasons required
           if (!s.clubSeasons || s.clubSeasons.length !== 2) {
             throw new Error("A split season must have exactly 2 clubSeasons");
           }
 
-          clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].category ?? null,
+          clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].division , s.clubSeasons[0].category ?? null,
             s.clubSeasons[0].matchs ?? 0, s.clubSeasons[0].goals ?? 0, s.clubSeasons[0].assists ?? 0,
             s.clubSeasons[0].average_playing_time ?? 0, 1); // first half
 
-          clubStmt.run(seasonId, s.clubSeasons[1].name ?? null, s.clubSeasons[1].category ?? null,
+          clubStmt.run(seasonId, s.clubSeasons[1].name ?? null,  s.clubSeasons[1].division, s.clubSeasons[1].category ?? null,
             s.clubSeasons[1].matchs ?? 0, s.clubSeasons[1].goals ?? 0, s.clubSeasons[1].assists ?? 0,
             s.clubSeasons[1].average_playing_time ?? 0, 2); // second half
 
@@ -170,6 +170,7 @@ export async function POST(req: NextRequest) {
           clubStmt.run(
             seasonId,
             s.clubSeasons[0].name ?? null,
+            s.clubSeasons[0].division,
             s.clubSeasons[0].category ?? null,
             s.clubSeasons[0].matchs ?? 0,
             s.clubSeasons[0].goals ?? 0,
@@ -180,11 +181,9 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      // 4️⃣ Formations
       const formationStmt = db.prepare(`INSERT INTO Formations (resume_id, duration, title, details) VALUES (?, ?, ?, ?)`);
       formations?.forEach(f => formationStmt.run(resumeId, f.duration ?? null, f.title ?? null, f.details ?? null));
 
-      // 5️⃣ Essais
       const essaiStmt = db.prepare(`INSERT INTO Essais (resume_id, club, year) VALUES (?, ?, ?)`);
       essais?.forEach(e => essaiStmt.run(resumeId, e.club ?? null, e.year ?? null));
 

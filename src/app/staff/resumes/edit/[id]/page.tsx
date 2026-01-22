@@ -136,7 +136,6 @@ const STEPS = [
 
 export default function PlayerForm() {
 
-
   const { id } = useParams<{ id: string }>();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -236,7 +235,6 @@ export default function PlayerForm() {
       firstName: resume.playerData.firstname ?? "",
       lastName: resume.playerData.lastname ?? "",
       photoPreview: resume.playerData.player_image ?? "",
-
       // Step 2 - Position
       composition: resume.composition_to_display ?? "4-3-3",
       mainPosition: resume.playerData.primary_position ?? "",
@@ -248,7 +246,7 @@ export default function PlayerForm() {
         resume.playerData.nationality2,
         resume.playerData.nationality3
       ].filter(Boolean),
-
+      
       birthDate: resume.playerData.date_of_birth ?? "",
       preferredFoot: resume.playerData.preferred_foot ?? "",
       height: resume.playerData.height?.toString() ?? "",
@@ -275,7 +273,7 @@ seasons: resume.seasons?.map((s: any) => {
       isCurrent: s.current_season ?? false,
       firstHalf: {
         club: s.clubSeasons[0].name ?? "",
-        division: "",
+        division: s.clubSeasons[0].division ?? "",
         category: s.clubSeasons[0].category ?? "",
         matches: s.clubSeasons[0].matchs?.toString() ?? "",
         goals: s.clubSeasons[0].goals?.toString() ?? "",
@@ -285,7 +283,7 @@ seasons: resume.seasons?.map((s: any) => {
       },
       secondHalf: {
         club: s.clubSeasons[1].name ?? "",
-        division: "",
+        division: s.clubSeasons[1].division ?? "",
         category: s.clubSeasons[1].category ?? "",
         matches: s.clubSeasons[1].matchs?.toString() ?? "",
         goals: s.clubSeasons[1].goals?.toString() ?? "",
@@ -311,7 +309,7 @@ seasons: resume.seasons?.map((s: any) => {
       isSplit: false,
       isCurrent: s.current_season ?? false,
       club: club.name ?? "",
-      division: "",
+      division: club.division ?? "",
       category: club.category ?? "",
       matches: club.matchs?.toString() ?? "",
       goals: club.goals?.toString() ?? "",
@@ -323,7 +321,6 @@ seasons: resume.seasons?.map((s: any) => {
     };
   }
 }) ?? [],
-
 
       // Step 5 - Formations & Trials
       formations: resume.formations?.map((f: any) => ({
@@ -364,6 +361,7 @@ seasons: resume.seasons?.map((s: any) => {
       const data = await res.json();
       console.log("data" ,data)
       hydrateFormData(data);
+      
     };
 
     fetchResume();
@@ -372,78 +370,115 @@ seasons: resume.seasons?.map((s: any) => {
 
 
 
-  const submitForm = async () => {
-    try {
-      // Préparer le body
-      const body = {
+  
+
+   const submitForm = async () => {
+  try {
+    // Préparer le body
+    const body = {
 
         cv_color: formData.cvColor,
-        composition_to_display: formData.composition,
+       composition_to_display: formData.composition,
         comments: formData.notes,
         playerData: {
-          player_image: "",
-          nationality1: formData.nationalities[0],
-          nationality2: formData.nationalities[1],
-          nationality3: formData.nationalities[2],
-          firstname: formData.firstName,
-          lastname: formData.lastName,
-          date_of_birth: formData.birthDate,
-          preferred_foot: formData.preferredFoot,
-          height: Number(formData.height) || null,
-          weight: Number(formData.weight) || null,
-          primary_position: formData.mainPosition,
-          secondary_position: formData.secondaryPosition,
-          vma: Number(formData.vma) || null,
-          qualities: formData.qualities.join(','),
-          email: formData.email,
-          phone: formData.phone,
-          email_agent: formData.agentEmail,
-          phone_agent: formData.agentPhone,
-          transfermark_url: formData.transfermarktUrl,
-        },
-
-        seasons: formData.seasons.map(s => ({
-          duration: s.year,
-          current_season: s.isCurrent,
-          clubSeasons: [
-            {
-              name: s.club,
-              category: s.category,
-              matchs: Number(s.matches) || 0,
-              goals: Number(s.goals) || 0,
-              assists: Number(s.assists) || 0,
-              average_playing_time: Number(s.avgPlayingTime) || 0,
-            },
-          ],
-        })),
-        formations: formData.formations.map(f => ({
-          duration: f.year,
-          title: f.title,
-          details: f.details,
-        })),
-        essais: formData.trials.map(t => ({
-          club: t.club,
-          year: t.year,
-        })),
-      };
-
-      const res = await fetch('http://localhost:3000/api/resumes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Erreur serveur');
-
-      alert(`CV créé avec l'ID ${data.resumeId}`);
-      // Tu peux réinitialiser le formulaire ou rediriger ici
-    } catch (err: any) {
-      console.error(err);
-      alert(`Erreur Serveur`);
-    }
+        player_image : formData.photoPreview,
+        nationality1: formData.nationalities[0],
+        nationality2 : formData.nationalities[1],
+        nationality3 : formData.nationalities[2],
+        firstname: formData.firstName,
+        lastname: formData.lastName,
+        date_of_birth: formData.birthDate,
+        preferred_foot: formData.preferredFoot,
+        height: Number(formData.height) || null,
+        weight: Number(formData.weight) || null,
+        primary_position: formData.mainPosition,
+        secondary_position: formData.secondaryPosition,
+        vma: Number(formData.vma) || null,
+        qualities: formData.qualities.join(','),
+        email: formData.email,
+        phone: formData.phone,
+        email_agent: formData.agentEmail,
+        phone_agent: formData.agentPhone,
+        transfermark_url: formData.transfermarktUrl,
+      },
+seasons: formData.seasons.map(s => {
+  const isSplit = s.isSplit ? 1 : 0;
+  
+  return {
+    duration: s.year || null,
+    current_season: s.isCurrent ? 1 : 0,
+    is_split: isSplit,
+    clubSeasons: isSplit === 1
+      ? [
+          // PREMIÈRE MOITIÉ (half_number: 1 dans le back)
+          {
+            name: s.firstHalf.club || null,
+            category: s.firstHalf.category || null,
+            matchs: Number(s.firstHalf.matches) || 0,
+            division : s.firstHalf.division,
+            goals: Number(s.firstHalf.goals) || 0,
+            assists: Number(s.firstHalf.assists) || 0,
+            average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
+          },
+          // DEUXIÈME MOITIÉ (half_number: 2 dans le back)
+          {
+            name: s.secondHalf.club || null,
+            category: s.secondHalf.category || null,
+            matchs: Number(s.secondHalf.matches) || 0,
+            division : s.secondHalf.division,
+            goals: Number(s.secondHalf.goals) || 0,
+            assists: Number(s.secondHalf.assists) || 0,
+            average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
+            
+          }
+        ]
+      : [
+          // SAISON COMPLÈTE
+          {
+            name: s.club || null,
+            category: s.category || null,
+            matchs: Number(s.matches) || 0,
+            division : s.division,
+            goals: Number(s.goals) || 0,
+            assists: Number(s.assists) || 0,
+            average_playing_time: Number(s.avgPlayingTime) || 0,
+          }
+        ]
   };
+}),
+
+
+
+    
+  formations: formData.formations.map(f => ({
+        duration: f.year,
+        title: f.title,
+        details: f.details,
+      })),
+      essais: formData.trials.map(t => ({
+        club: t.club,
+        year: t.year,
+      })),
+    };
+
+    const res = await fetch(`http://localhost:3000/api/resumes/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Erreur serveur');
+
+    alert(`CV modifié avec avec succées ${data.resumeId}`);
+    // Tu peux réinitialiser le formulaire ou rediriger ici
+  } catch (err: any) {
+    console.error(err);
+    alert(`Erreur Serveur`);
+  }
+};
+
 
 
 
@@ -755,8 +790,7 @@ seasons: resume.seasons?.map((s: any) => {
                               setEditingNationalityIndex(index);
                               setIsNationalityModalOpen(true);
                             }}
-                            className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-left flex items-center justify-between hover:border-[#FF9228]/50 transition-colors"
-                          >
+                            className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-left flex items-center justify-between hover:border-[#FF9228]/50 transition-colors">
                             {nation ? (
                               <span className="text-white">{nation.name}</span>
                             ) : (
@@ -1702,7 +1736,7 @@ seasons: resume.seasons?.map((s: any) => {
                   onClick={submitForm}
                 >
 
-                  Soumettre mon CV
+                  Modifier le CV
                 </button>
               )}
             </div>

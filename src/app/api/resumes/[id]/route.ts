@@ -94,44 +94,57 @@ export async function PUT(
 
       db.prepare(`DELETE FROM Season WHERE resume_id = ?`).run(resumeId);
 
-      const seasonStmt = db.prepare(`
-        INSERT INTO Season (resume_id, duration, current_season)
-        VALUES (?, ?, ?)
+     const seasonStmt = db.prepare(`
+        INSERT INTO Season (resume_id, duration, current_season, is_split)
+        VALUES (?, ?, ?, ?)
       `);
-
       const clubStmt = db.prepare(`
-        INSERT INTO Club_Season (
-          season_id, name, category, matchs, goals, assists, average_playing_time,
-          badge1_id, badge2_id, badge3_id, logo_club_id, logo_division_id
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO Club_Season 
+        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      seasons?.forEach((s: Season) => {
+       seasons?.forEach(s => {
         const seasonInfo = seasonStmt.run(
           resumeId,
           s.duration ?? null,
-          s.current_season ? 1 : 0
+          s.current_season ? 1 : 0,
+          s.is_split ? 1 : 0 
         );
+        const seasonId = seasonInfo.lastInsertRowid;
+        console.log("is_splite :" , s.is_split)
+        if (s.is_split) {
+          // Half season → exactly 2 clubSeasons required
+          if (!s.clubSeasons || s.clubSeasons.length !== 2) {
+            throw new Error("A split season must have exactly 2 clubSeasons");
+          }
 
-        const seasonId = seasonInfo.lastInsertRowid as number;
+          clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].division , s.clubSeasons[0].category ?? null,
+            s.clubSeasons[0].matchs ?? 0, s.clubSeasons[0].goals ?? 0, s.clubSeasons[0].assists ?? 0,
+            s.clubSeasons[0].average_playing_time ?? 0, 1); // first half
 
-        s.clubSeasons?.forEach((c: ClubSeason) => {
+          clubStmt.run(seasonId, s.clubSeasons[1].name ?? null,  s.clubSeasons[1].division, s.clubSeasons[1].category ?? null,
+            s.clubSeasons[1].matchs ?? 0, s.clubSeasons[1].goals ?? 0, s.clubSeasons[1].assists ?? 0,
+            s.clubSeasons[1].average_playing_time ?? 0, 2); // second half
+
+        } else {
+          // Full season → exactly 1 clubSeason
+          if (!s.clubSeasons || s.clubSeasons.length !== 1) {
+            throw new Error("A full season must have exactly 1 clubSeason");
+          }
+
           clubStmt.run(
             seasonId,
-            c.name ?? null,
-            c.category ?? null,
-            c.matchs ?? 0,
-            c.goals ?? 0,
-            c.assists ?? 0,
-            c.average_playing_time ?? 0,
-            c.badge1_id ?? null,
-            c.badge2_id ?? null,
-            c.badge3_id ?? null,
-            c.logo_club_id ?? null,
-            c.logo_division_id ?? null
+            s.clubSeasons[0].name ?? null,
+            s.clubSeasons[0].division,
+            s.clubSeasons[0].category ?? null,
+            s.clubSeasons[0].matchs ?? 0,
+            s.clubSeasons[0].goals ?? 0,
+            s.clubSeasons[0].assists ?? 0,
+            s.clubSeasons[0].average_playing_time ?? 0,
+            null // no half
           );
-        });
+        }
       });
 
       /* -------- Formations -------- */
@@ -272,6 +285,7 @@ export async function GET(
             matchs: c.matchs,
             goals: c.goals,
             assists: c.assists,
+            division : c.division,
             average_playing_time: c.average_playing_time,
             badge1_id: c.badge1_id,
             badge2_id: c.badge2_id,
