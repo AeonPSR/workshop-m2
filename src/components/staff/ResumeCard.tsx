@@ -1,8 +1,10 @@
 "use client"
-import { FileText, Trash2, Copy, ExternalLink, Calendar } from "lucide-react";
+import { FileText, Trash2, Copy, ExternalLink, Calendar, X, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { FileDown } from "lucide-react";
+
 interface ResumeardProps {
     id: number
     firstName: string;
@@ -12,6 +14,98 @@ interface ResumeardProps {
     isTreated : boolean;
     onDelete?: () => void;
     onDuplicate?: () => void;
+    onStatusChange?: () => void;
+}
+
+// Modal de confirmation de suppression
+function DeleteConfirmModal({
+    isOpen,
+    onClose,
+    onConfirm,
+    playerName,
+    isDeleting
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    playerName: string;
+    isDeleting: boolean;
+}) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
+
+    const modalContent = (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                onClick={onClose}
+            />
+            
+            {/* Modal */}
+            <div className="relative bg-[#1a1a1a] border border-red-500/30 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+                {/* Close button */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                {/* Icon */}
+                <div className="flex justify-center mb-4">
+                    <div className="bg-red-500/20 p-3 rounded-full">
+                        <AlertTriangle className="w-8 h-8 text-red-500" />
+                    </div>
+                </div>
+
+                {/* Content */}
+                <h3 className="text-white text-xl font-bold text-center mb-2">
+                    Confirmer la suppression
+                </h3>
+                <p className="text-white/70 text-center mb-6">
+                    Êtes-vous sûr de vouloir supprimer le CV de <span className="text-white font-semibold">{playerName}</span> ? 
+                    Cette action est irréversible.
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        disabled={isDeleting}
+                        className="flex-1 py-2.5 px-4 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isDeleting}
+                        className="flex-1 py-2.5 px-4 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isDeleting ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Suppression...
+                            </>
+                        ) : (
+                            <>
+                                <Trash2 className="w-4 h-4" />
+                                Supprimer
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    return createPortal(modalContent, document.body);
 }
 
 export default function ResumeCard({
@@ -23,10 +117,58 @@ export default function ResumeCard({
     isTreated ,
     onDelete,
     onDuplicate,
+    onStatusChange,
 }: ResumeardProps) {
 
-
    const [isGenerating, setIsGenerating] = useState(false)
+   const [showDeleteModal, setShowDeleteModal] = useState(false)
+   const [isDeleting, setIsDeleting] = useState(false)
+   const [isTogglingStatus, setIsTogglingStatus] = useState(false)
+
+   const handleDeleteClick = () => {
+       setShowDeleteModal(true)
+   }
+
+   const handleToggleStatus = async () => {
+       setIsTogglingStatus(true)
+       try {
+           const response = await fetch(`/api/resumes/${id}`, {
+               method: 'PATCH',
+           })
+           if (response.ok) {
+               if (onStatusChange) onStatusChange()
+           } else {
+               const error = await response.json()
+               alert("Erreur: " + (error.message || "Impossible de changer le statut"))
+           }
+       } catch (err) {
+           console.error(err)
+           alert("Erreur lors du changement de statut")
+       } finally {
+           setIsTogglingStatus(false)
+       }
+   }
+
+   const handleDeleteConfirm = async () => {
+       setIsDeleting(true)
+       try {
+           const response = await fetch(`/api/resumes/${id}`, {
+               method: 'DELETE',
+           })
+           if (response.ok) {
+               setShowDeleteModal(false)
+               if (onDelete) onDelete()
+           } else {
+               const error = await response.json()
+               alert("Erreur: " + (error.message || "Impossible de supprimer le CV"))
+           }
+       } catch (err) {
+           console.error(err)
+           alert("Erreur lors de la suppression du CV")
+       } finally {
+           setIsDeleting(false)
+       }
+   }
    const handleGenerateCV = async () => {
     setIsGenerating(true)
     try {
@@ -60,14 +202,24 @@ export default function ResumeCard({
                 <div className="bg-[#ff9228]/10 p-2 rounded-lg">
                     <FileText className="text-[#ff9228] w-6 h-6" />
                 </div>
-                <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${isTreated
-                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                            : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                <button
+                    onClick={handleToggleStatus}
+                    disabled={isTogglingStatus}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer disabled:opacity-50 ${isTreated
+                            ? "bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
+                            : "bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
                         }`}
+                    title={isTreated ? "Marquer comme à traiter" : "Marquer comme traité"}
                 >
+                    {isTogglingStatus ? (
+                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : isTreated ? (
+                        <CheckCircle className="w-3 h-3" />
+                    ) : (
+                        <Clock className="w-3 h-3" />
+                    )}
                     {isTreated ? "Traité" : "À traiter"}
-                </span>
+                </button>
             </div>
 
             {/* Informations Joueur */}
@@ -109,15 +261,14 @@ export default function ResumeCard({
                 </button>
 
                 <button
-                    onClick={onDelete}
+                    onClick={handleDeleteClick}
                     className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors border border-red-500/20"
                     title="Supprimer"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>
 
-
-                    <button
+                <button
           onClick={handleGenerateCV}
           disabled={isGenerating}
         className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors border border-red-500/20 flex  gap-2 items-center"
@@ -126,6 +277,15 @@ export default function ResumeCard({
           <span className="font-medium">{isGenerating ? "Génération..." : "Générer CV"}</span>
         </button>
             </div>
+
+            {/* Modal de confirmation - rendu via portal */}
+            <DeleteConfirmModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDeleteConfirm}
+                playerName={`${firstName} ${lastName}`}
+                isDeleting={isDeleting}
+            />
         </div>
     );
 }
