@@ -218,7 +218,6 @@ export default function PlayerForm() {
     // Step 6 - Contact
     agentEmail: "",
     agentPhone: "",
-    videoUrl: "",
     transfermarktUrl: "",
     notes: "",
   });
@@ -244,7 +243,7 @@ export default function PlayerForm() {
     firstName: "Kylian",
     lastName: "Mbappé",
     photo: null as File | null,
-    internationals: ["France"] as string[],
+    internationals: ["FR"] as string[],
     photoPreview: "/DEMO-mbappe.jpg", // ⚠️ DEMO - Image in public folder
     composition: "4-3-3" as "4-3-3" | "3-5-2",
     mainPosition: "AIG",
@@ -305,7 +304,6 @@ export default function PlayerForm() {
     ],
     agentEmail: "agent@example.com",
     agentPhone: "+33 1 23 45 67 89",
-    videoUrl: "https://youtube.com/watch?v=example",
     transfermarktUrl: "https://www.transfermarkt.com/kylian-mbappe/profil/spieler/342229",
     notes: "Joueur exceptionnel avec un potentiel de classe mondiale.",
   };
@@ -378,6 +376,9 @@ seasons: formData.seasons.map(s => {
             goals: Number(s.firstHalf.goals) || 0,
             assists: Number(s.firstHalf.assists) || 0,
             average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
+            comment1: s.firstHalf.comments?.[0] || null,
+            comment2: s.firstHalf.comments?.[1] || null,
+            comment3: s.firstHalf.comments?.[2] || null,
           },
           // DEUXIÈME MOITIÉ (half_number: 2 dans le back)
           {
@@ -388,7 +389,9 @@ seasons: formData.seasons.map(s => {
             goals: Number(s.secondHalf.goals) || 0,
             assists: Number(s.secondHalf.assists) || 0,
             average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
-            
+            comment1: s.secondHalf.comments?.[0] || null,
+            comment2: s.secondHalf.comments?.[1] || null,
+            comment3: s.secondHalf.comments?.[2] || null,
           }
         ]
       : [
@@ -401,6 +404,9 @@ seasons: formData.seasons.map(s => {
             goals: Number(s.goals) || 0,
             assists: Number(s.assists) || 0,
             average_playing_time: Number(s.avgPlayingTime) || 0,
+            comment1: s.comments?.[0] || null,
+            comment2: s.comments?.[1] || null,
+            comment3: s.comments?.[2] || null,
           }
         ]
   };
@@ -418,6 +424,10 @@ seasons: formData.seasons.map(s => {
         club: t.club,
         year: t.year,
       })),
+      // Links - only send shareLink
+      links: formData.shareLink?.trim() 
+        ? [{ url: formData.shareLink.trim(), link_type: 'share' }] 
+        : [],
     };
 
     const res = await fetch('http://localhost:3000/api/resumes', {

@@ -87,8 +87,8 @@ export type Resume = {
 // --- POST ---
 export async function POST(req: NextRequest) {
   try {
-    const body: Resume = await req.json();
-    const { playerData, cv_color, composition_to_display, comments, seasons, formations, essais } = body;
+    const body = await req.json();
+    const { playerData, cv_color, composition_to_display, comments, seasons, formations, essais, links } = body;
 
     const resumeId = db.transaction(() => {
       const playerStmt = db.prepare(`
@@ -138,8 +138,8 @@ export async function POST(req: NextRequest) {
       `);
       const clubStmt = db.prepare(`
         INSERT INTO Club_Season 
-        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (season_id, name, division, category, matchs, goals, assists, average_playing_time, half_number, comment1, comment2, comment3)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       seasons?.forEach(s => {
@@ -159,11 +159,13 @@ export async function POST(req: NextRequest) {
 
           clubStmt.run(seasonId, s.clubSeasons[0].name ?? null, s.clubSeasons[0].division , s.clubSeasons[0].category ?? null,
             s.clubSeasons[0].matchs ?? 0, s.clubSeasons[0].goals ?? 0, s.clubSeasons[0].assists ?? 0,
-            s.clubSeasons[0].average_playing_time ?? 0, 1); // first half
+            s.clubSeasons[0].average_playing_time ?? 0, 1,
+            s.clubSeasons[0].comment1 ?? null, s.clubSeasons[0].comment2 ?? null, s.clubSeasons[0].comment3 ?? null); // first half
 
           clubStmt.run(seasonId, s.clubSeasons[1].name ?? null,  s.clubSeasons[1].division, s.clubSeasons[1].category ?? null,
             s.clubSeasons[1].matchs ?? 0, s.clubSeasons[1].goals ?? 0, s.clubSeasons[1].assists ?? 0,
-            s.clubSeasons[1].average_playing_time ?? 0, 2); // second half
+            s.clubSeasons[1].average_playing_time ?? 0, 2,
+            s.clubSeasons[1].comment1 ?? null, s.clubSeasons[1].comment2 ?? null, s.clubSeasons[1].comment3 ?? null); // second half
 
         } else {
           // Full season → exactly 1 clubSeason
@@ -180,7 +182,10 @@ export async function POST(req: NextRequest) {
             s.clubSeasons[0].goals ?? 0,
             s.clubSeasons[0].assists ?? 0,
             s.clubSeasons[0].average_playing_time ?? 0,
-            null // no half
+            null, // no half
+            s.clubSeasons[0].comment1 ?? null,
+            s.clubSeasons[0].comment2 ?? null,
+            s.clubSeasons[0].comment3 ?? null
           );
         }
       });
@@ -190,6 +195,12 @@ export async function POST(req: NextRequest) {
 
       const essaiStmt = db.prepare(`INSERT INTO Essais (resume_id, club, year) VALUES (?, ?, ?)`);
       essais?.forEach(e => essaiStmt.run(resumeId, e.club ?? null, e.year ?? null));
+
+      // Insert links (videoUrl, shareLink, etc.)
+      const linkStmt = db.prepare(`INSERT INTO Link (resume_id, url, link_type) VALUES (?, ?, ?)`);
+      links?.forEach((l: { url: string; link_type?: string }) => {
+        if (l.url) linkStmt.run(resumeId, l.url, l.link_type ?? null);
+      });
 
       return resumeId;
     })();

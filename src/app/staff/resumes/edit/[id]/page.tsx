@@ -232,9 +232,6 @@ export default function PlayerForm() {
     videoUrl: "",
     transfermarktUrl: "",
     notes: "",
-    
-    // Links (stored in DB)
-    links: [] as Array<{ url: string; link_type: string }>,
   });
 
 
@@ -272,7 +269,7 @@ export default function PlayerForm() {
         ? resume.playerData.qualities.split(",")
         : [""],
       internationals: resume.playerData.internationals
-        ? resume.playerData.qualities.split(",")
+        ? resume.playerData.internationals.split(",")
         : [""],
 
       email: resume.playerData.email ?? "",
@@ -375,13 +372,8 @@ export default function PlayerForm() {
       // Step 6 - Notes
       notes: resume.comments ?? "",
 
-      // Internationals (from DB)
-      internationals: resume.internationals?.length > 0 
-        ? resume.internationals.map((i: any) => i.country_code)
-        : [""],
-
-      // Links (from DB)
-      links: resume.links ?? []
+      // Links - extract shareLink from links array
+      shareLink: resume.links?.find((l: any) => l.link_type === 'share')?.url ?? ""
     }));
   };
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
@@ -477,6 +469,7 @@ export default function PlayerForm() {
           secondary_position: formData.secondaryPosition,
           vma: Number(formData.vma) || null,
           qualities: formData.qualities.join(','),
+          internationals: formData.internationals.filter(c => c && c.trim() !== "").join(','),
           email: formData.email,
           phone: formData.phone,
           email_agent: formData.agentEmail,
@@ -565,8 +558,10 @@ export default function PlayerForm() {
           .filter(code => code && code.trim() !== "")
           .map(code => ({ country_code: code })),
         
-        // Links - filter out empty URLs
-        links: formData.links.filter(l => l.url && l.url.trim() !== ""),
+        // Links - only send shareLink
+        links: formData.shareLink?.trim() 
+          ? [{ url: formData.shareLink.trim(), link_type: 'share' }] 
+          : [],
       };
 
       const res = await fetch(`http://localhost:3000/api/resumes/${id}`, {
@@ -745,23 +740,6 @@ export default function PlayerForm() {
     const newSeasons = [...formData.seasons];
     newSeasons[seasonIndex][half].comments = newSeasons[seasonIndex][half].comments.filter((_, i) => i !== commentIndex);
     updateFormData("seasons", newSeasons);
-  };
-
-  // Link management
-  const addLink = () => {
-    if (formData.links.length < 5) {
-      updateFormData("links", [...formData.links, { url: "", link_type: "" }]);
-    }
-  };
-
-  const updateLink = (index: number, field: "url" | "link_type", value: string) => {
-    const newLinks = [...formData.links];
-    newLinks[index] = { ...newLinks[index], [field]: value };
-    updateFormData("links", newLinks);
-  };
-
-  const removeLink = (index: number) => {
-    updateFormData("links", formData.links.filter((_, i) => i !== index));
   };
 
   const addFormation = () => {
@@ -2149,60 +2127,6 @@ export default function PlayerForm() {
                     placeholder="Informations complémentaires, situation particulière, objectifs..."
                     rows={4}
                   />
-                </div>
-
-                {/* Links Section */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-white/80">
-                      Liens externes (max 5)
-                    </label>
-                    {formData.links.length < 5 && (
-                      <button
-                        type="button"
-                        onClick={addLink}
-                        className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium"
-                      >
-                        + Ajouter un lien
-                      </button>
-                    )}
-                  </div>
-                  {formData.links.length === 0 ? (
-                    <p className="text-white/50 text-sm">Aucun lien ajouté</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {formData.links.map((link, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <select
-                            value={link.link_type}
-                            onChange={(e) => updateLink(index, "link_type", e.target.value)}
-                            className="px-3 py-2 bg-gray-800 border border-white/20 rounded-lg text-sm text-white"
-                          >
-                            <option value="">Type</option>
-                            <option value="video">Vidéo</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="twitter">Twitter/X</option>
-                            <option value="linkedin">LinkedIn</option>
-                            <option value="other">Autre</option>
-                          </select>
-                          <input
-                            type="url"
-                            value={link.url}
-                            onChange={(e) => updateLink(index, "url", e.target.value)}
-                            className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
-                            placeholder="https://..."
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeLink(index)}
-                            className="text-red-500 hover:text-red-700 text-lg"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
