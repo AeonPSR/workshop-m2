@@ -184,6 +184,7 @@ export default function PlayerForm() {
       divisionLogo: string,
       cleanSheets: string;
       avgPlayingTime: string;
+      comments: Array<{ text: string; badge: string }>;
       // Split season data
       firstHalf: {
         club: string;
@@ -196,6 +197,7 @@ export default function PlayerForm() {
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
+        comments: Array<{ text: string; badge: string }>;
       };
       secondHalf: {
         club: string;
@@ -208,6 +210,7 @@ export default function PlayerForm() {
         assists: string;
         cleanSheets: string;
         avgPlayingTime: string;
+        comments: Array<{ text: string; badge: string }>;
       };
     }>,
     
@@ -290,7 +293,8 @@ export default function PlayerForm() {
               goals: s.clubSeasons[0].goals?.toString() ?? "",
               assists: s.clubSeasons[0].assists?.toString() ?? "",
               cleanSheets: "",
-              avgPlayingTime: s.clubSeasons[0].average_playing_time?.toString() ?? ""
+              avgPlayingTime: s.clubSeasons[0].average_playing_time?.toString() ?? "",
+              comments: [] as Array<{ text: string; badge: string }>
             },
             secondHalf: {
               club: s.clubSeasons[1].name ?? "",
@@ -302,7 +306,8 @@ export default function PlayerForm() {
               goals: s.clubSeasons[1].goals?.toString() ?? "",
               assists: s.clubSeasons[1].assists?.toString() ?? "",
               cleanSheets: "",
-              avgPlayingTime: s.clubSeasons[1].average_playing_time?.toString() ?? ""
+              avgPlayingTime: s.clubSeasons[1].average_playing_time?.toString() ?? "",
+              comments: [] as Array<{ text: string; badge: string }>
             },
             // Full season fields empty
             club: "",
@@ -312,7 +317,8 @@ export default function PlayerForm() {
             goals: "",
             assists: "",
             cleanSheets: "",
-            avgPlayingTime: ""
+            avgPlayingTime: "",
+            comments: [] as Array<{ text: string; badge: string }>
           };
         } else {
           // Full season
@@ -331,8 +337,9 @@ export default function PlayerForm() {
             assists: club.assists?.toString() ?? "",
             cleanSheets: "",
             avgPlayingTime: club.average_playing_time?.toString() ?? "",
-            firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" },
-            secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "" }
+            comments: [] as Array<{ text: string; badge: string }>,
+            firstHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", clubLogo: "", divisionLogo: "", comments: [] as Array<{ text: string; badge: string }> },
+            secondHalf: { club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", clubLogo: "", divisionLogo: "", comments: [] as Array<{ text: string; badge: string }> }
           };
         }
       }) ?? [],
@@ -355,6 +362,8 @@ export default function PlayerForm() {
   };
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
+  const [isInternationalModalOpen, setIsInternationalModalOpen] = useState(false);
+  const [editingInternationalIndex, setEditingInternationalIndex] = useState(0);
   const [activeHalfTab, setActiveHalfTab] = useState<Record<number, "first" | "second">>({});
   const [logos, setLogos] = useState<Logo[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
@@ -605,13 +614,14 @@ export default function PlayerForm() {
           assists: "",
           cleanSheets: "",
           avgPlayingTime: "",
+          comments: [] as Array<{ text: string; badge: string }>,
           firstHalf: {
             club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", logoDivision: "",
-            logoClub: "",
+            logoClub: "", comments: [] as Array<{ text: string; badge: string }>,
           },
           secondHalf: {
             club: "", division: "", category: "", matches: "", goals: "", assists: "", cleanSheets: "", avgPlayingTime: "", logoDivision: "",
-            logoClub: "",
+            logoClub: "", comments: [] as Array<{ text: string; badge: string }>,
           }
         }
       ]);
@@ -644,6 +654,54 @@ export default function PlayerForm() {
 
   const removeSeason = (index: number) => {
     updateFormData("seasons", formData.seasons.filter((_, i) => i !== index));
+  };
+
+  // Comment management for seasons
+  const addSeasonComment = (seasonIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    if (newSeasons[seasonIndex].comments.length < 3) {
+      newSeasons[seasonIndex].comments = [...newSeasons[seasonIndex].comments, { text: "", badge: "" }];
+      updateFormData("seasons", newSeasons);
+    }
+  };
+
+  const updateSeasonComment = (seasonIndex: number, commentIndex: number, field: "text" | "badge", value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex].comments[commentIndex] = {
+      ...newSeasons[seasonIndex].comments[commentIndex],
+      [field]: value
+    };
+    updateFormData("seasons", newSeasons);
+  };
+
+  const removeSeasonComment = (seasonIndex: number, commentIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex].comments = newSeasons[seasonIndex].comments.filter((_, i) => i !== commentIndex);
+    updateFormData("seasons", newSeasons);
+  };
+
+  // Comment management for half seasons
+  const addHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf") => {
+    const newSeasons = [...formData.seasons];
+    if (newSeasons[seasonIndex][half].comments.length < 3) {
+      newSeasons[seasonIndex][half].comments = [...newSeasons[seasonIndex][half].comments, { text: "", badge: "" }];
+      updateFormData("seasons", newSeasons);
+    }
+  };
+
+  const updateHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf", commentIndex: number, field: "text" | "badge", value: string) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex][half].comments[commentIndex] = {
+      ...newSeasons[seasonIndex][half].comments[commentIndex],
+      [field]: value
+    };
+    updateFormData("seasons", newSeasons);
+  };
+
+  const removeHalfSeasonComment = (seasonIndex: number, half: "firstHalf" | "secondHalf", commentIndex: number) => {
+    const newSeasons = [...formData.seasons];
+    newSeasons[seasonIndex][half].comments = newSeasons[seasonIndex][half].comments.filter((_, i) => i !== commentIndex);
+    updateFormData("seasons", newSeasons);
   };
 
   const addFormation = () => {
@@ -1161,33 +1219,44 @@ export default function PlayerForm() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    {formData.internationals.map((intl, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={intl}
-                          onChange={(e) => {
-                            const newInternationalsArr = [...formData.internationals];
-                            newInternationalsArr[index] = e.target.value;
-                            updateFormData("internationals", newInternationalsArr);
-                          }}
-                          className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:ring-2 focus:ring-[#FF9228]/50 focus:border-transparent"
-                          placeholder="Ex: France U21"
-                        />
-                        {formData.internationals.length > 1 && (
+                    {formData.internationals.map((intlCode, index) => {
+                      const nation = NATIONALITIES.find(n => n.code === intlCode);
+                      return (
+                        <div key={index} className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => {
-                              const newInternationalsRemove = formData.internationals.filter((_, i) => i !== index);
-                              updateFormData("internationals", newInternationalsRemove);
+                              setEditingInternationalIndex(index);
+                              setIsInternationalModalOpen(true);
                             }}
-                            className="p-3 text-white/40 hover:text-red-400 transition-colors"
+                            className="flex-1 px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-left flex items-center justify-between hover:border-[#FF9228]/50 transition-colors"
                           >
-                            ✕
+                            {nation ? (
+                              <span className="text-white">{nation.name}</span>
+                            ) : (
+                              <span className="text-white/40">Sélectionner une équipe nationale</span>
+                            )}
+                            <span className="text-white/40">▼</span>
                           </button>
-                        )}
-                      </div>
-                    ))}
+                          {(formData.internationals.length > 1 || intlCode !== "") && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (formData.internationals.length > 1) {
+                                  const newInternationalsRemove = formData.internationals.filter((_, i) => i !== index);
+                                  updateFormData("internationals", newInternationalsRemove);
+                                } else {
+                                  updateFormData("internationals", [""]);
+                                }
+                              }}
+                              className="p-3 text-white/40 hover:text-red-400 transition-colors"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1244,22 +1313,7 @@ export default function PlayerForm() {
                   </div>
                 </div>
 
-                {formData.qualities.some(q => q) && (
-                  <div>
-                    <p className="text-sm font-medium text-white/80 mb-2">Aperçu des qualités :</p>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.qualities.filter(q => q).map((q, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 rounded-full text-sm text-white"
-                          style={{ backgroundColor: formData.cvColor }}
-                        >
-                          {q}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
 
                 <div className="border-t border-white/10 pt-6">
                   <h3 className="text-lg font-medium text-white mb-4">Contact</h3>
@@ -1512,6 +1566,49 @@ export default function PlayerForm() {
                                 />
                               </>
                             )}
+                            {/* Comments section */}
+                            <div className="col-span-2 space-y-2 mt-3 pt-3 border-t border-white/10">
+                              <label className="block text-sm font-medium text-white/80">Commentaires (max 3)</label>
+                              {season.comments.map((comment, commentIndex) => (
+                                <div key={commentIndex} className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={comment.text}
+                                    onChange={(e) => updateSeasonComment(index, commentIndex, "text", e.target.value)}
+                                    className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                    placeholder="Commentaire (ex: Champion, Coupe...)"
+                                  />
+                                  <select
+                                    value={comment.badge}
+                                    onChange={(e) => updateSeasonComment(index, commentIndex, "badge", e.target.value)}
+                                    className="px-3 py-2 bg-gray-800 border border-white/20 rounded-lg text-sm text-white"
+                                  >
+                                    <option value="">-- Badge --</option>
+                                    {badges.map((badge) => (
+                                      <option key={badge.id} value={badge.image}>
+                                        {badge.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeSeasonComment(index, commentIndex)}
+                                    className="text-red-500 hover:text-red-700 p-1 text-lg"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                              {season.comments.length < 3 && (
+                                <button
+                                  type="button"
+                                  onClick={() => addSeasonComment(index)}
+                                  className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                >
+                                  <span className="text-lg">+</span> Ajouter un commentaire
+                                </button>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           /* Split season - tabs */
@@ -1636,6 +1733,49 @@ export default function PlayerForm() {
                                     />
                                   </>
                                 )}
+                                {/* Comments section for firstHalf */}
+                                <div className="col-span-2 space-y-2 mt-3 pt-3 border-t border-white/10">
+                                  <label className="block text-sm font-medium text-white/80">Commentaires (max 3)</label>
+                                  {season.firstHalf.comments.map((comment, commentIndex) => (
+                                    <div key={commentIndex} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={comment.text}
+                                        onChange={(e) => updateHalfSeasonComment(index, "firstHalf", commentIndex, "text", e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                        placeholder="Commentaire (ex: Champion, Coupe...)"
+                                      />
+                                      <select
+                                        value={comment.badge}
+                                        onChange={(e) => updateHalfSeasonComment(index, "firstHalf", commentIndex, "badge", e.target.value)}
+                                        className="px-3 py-2 bg-gray-800 border border-white/20 rounded-lg text-sm text-white"
+                                      >
+                                        <option value="">-- Badge --</option>
+                                        {badges.map((badge) => (
+                                          <option key={badge.id} value={badge.image}>
+                                            {badge.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeHalfSeasonComment(index, "firstHalf", commentIndex)}
+                                        className="text-red-500 hover:text-red-700 p-1 text-lg"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {season.firstHalf.comments.length < 3 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => addHalfSeasonComment(index, "firstHalf")}
+                                      className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                    >
+                                      <span className="text-lg">+</span> Ajouter un commentaire
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             ) : (
                               <div className="grid grid-cols-2 gap-3">
@@ -1732,6 +1872,49 @@ export default function PlayerForm() {
                                     />
                                   </>
                                 )}
+                                {/* Comments section for secondHalf */}
+                                <div className="col-span-2 space-y-2 mt-3 pt-3 border-t border-white/10">
+                                  <label className="block text-sm font-medium text-white/80">Commentaires (max 3)</label>
+                                  {season.secondHalf.comments.map((comment, commentIndex) => (
+                                    <div key={commentIndex} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={comment.text}
+                                        onChange={(e) => updateHalfSeasonComment(index, "secondHalf", commentIndex, "text", e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
+                                        placeholder="Commentaire (ex: Champion, Coupe...)"
+                                      />
+                                      <select
+                                        value={comment.badge}
+                                        onChange={(e) => updateHalfSeasonComment(index, "secondHalf", commentIndex, "badge", e.target.value)}
+                                        className="px-3 py-2 bg-gray-800 border border-white/20 rounded-lg text-sm text-white"
+                                      >
+                                        <option value="">-- Badge --</option>
+                                        {badges.map((badge) => (
+                                          <option key={badge.id} value={badge.image}>
+                                            {badge.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeHalfSeasonComment(index, "secondHalf", commentIndex)}
+                                        className="text-red-500 hover:text-red-700 p-1 text-lg"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {season.secondHalf.comments.length < 3 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => addHalfSeasonComment(index, "secondHalf")}
+                                      className="text-[#FF9228] hover:text-[#FF9228]/80 text-sm font-medium flex items-center gap-1"
+                                    >
+                                      <span className="text-lg">+</span> Ajouter un commentaire
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1970,6 +2153,43 @@ export default function PlayerForm() {
                     setIsNationalityModalOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${formData.nationalities[editingNationalityIndex] === nation.code
+                    ? "bg-[#FF9228]/20 text-[#FF9228]"
+                    : "text-white hover:bg-white/10"
+                    }`}
+                >
+                  <span className="font-medium">{nation.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* International Modal */}
+      {isInternationalModalOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Sélectionner une équipe nationale</h3>
+              <button
+                onClick={() => setIsInternationalModalOpen(false)}
+                className="text-white/50 hover:text-white/80 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[60vh] space-y-1">
+              {NATIONALITIES.map((nation) => (
+                <button
+                  key={nation.code}
+                  type="button"
+                  onClick={() => {
+                    const newInternationalsArr = [...formData.internationals];
+                    newInternationalsArr[editingInternationalIndex] = nation.code;
+                    updateFormData("internationals", newInternationalsArr);
+                    setIsInternationalModalOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${formData.internationals[editingInternationalIndex] === nation.code
                     ? "bg-[#FF9228]/20 text-[#FF9228]"
                     : "text-white hover:bg-white/10"
                     }`}

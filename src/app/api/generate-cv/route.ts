@@ -33,13 +33,16 @@ export async function GET(request: Request) {
     console.log("Navigating to:", templateUrl);
     
     await page.goto(templateUrl, {
-      waitUntil: "networkidle0",
+      waitUntil: "networkidle2",
       timeout: 30000,
     });
     
-    // Wait for images to load
-    await page.waitForSelector("#cv-container", { timeout: 10000 });
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Extra wait for images
+    // Wait for cv-container to appear (it's now on all states including loading)
+    await page.waitForSelector("#cv-container", { timeout: 15000 });
+    
+    // Wait for actual content to load (check for a non-loading state)
+    // Give React time to hydrate and fetch data
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
     // Generate PDF
     const pdfBuffer = await page.pdf({
