@@ -1,4 +1,9 @@
-# Next.js + SQLite + Zod
+## Technologies
+
+- **Frontend** : Next.js 16, React 19, Tailwind CSS v4
+- **Backend** : API Routes Next.js, SQLite (better-sqlite3)
+- **Validation** : Zod
+- **PDF** : Puppeteer
 
 ## Installation
 
@@ -6,10 +11,37 @@
 npm install
 ```
 
-## Run
+## Configuration
+
+Créer un fichier `.env` à la racine :
+
+```
+STAFF_ACCESS_CODE=votre_code_acces
+```
+
+## Lancement
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Ouvrir [http://localhost:3000](http://localhost:3000)
+
+## Structure
+
+```
+src/
+├── app/
+│   ├── api/          # Endpoints API REST
+│   ├── player/       # Formulaire joueur
+│   ├── staff/        # Interface staff
+│   └── cv-template/  # Template PDF
+├── components/       # Composants React
+└── lib/
+    └── db.ts         # Configuration SQLite
+```
+
+## Documentation
+
+- [API.md](API.md) — Documentation des endpoints API
+- [DATABASE.md](DATABASE.md) — Schéma de base de données
