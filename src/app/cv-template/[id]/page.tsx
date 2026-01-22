@@ -188,7 +188,6 @@ managerPhone: "+33 1 23 45 67 89",
 cvColor: "#1E5EFF",
 links: [
 	"https://www.youtube.com/watch?v=GYiyIacyTUc",
-	"https://www.transfermarkt.com/kylian-mbappe/profil/spieler/342229",
 ],
 seasons: [
 	{
@@ -203,7 +202,10 @@ seasons: [
 	goals: "20",
 	assists: "8",
 	avgPlayingTime: "85",
-	comments: ["Saison en cours", "Meilleur buteur du championnat"],
+	comments: [
+		{ text: "Saison en cours", badges: ["/demo-badges/current.png"] },
+		{ text: "Sélections en Équipe de France", badges: ["FR"] },
+	],
 	},
 	{
 	year: "2023-2024",
@@ -217,7 +219,44 @@ seasons: [
 	goals: "27",
 	assists: "7",
 	avgPlayingTime: "85",
-	comments: ["Meilleur buteur du championnat", "Capitaine de l'équipe"],
+	comments: [
+		{ text: "Meilleur buteur du championnat", badges: ["/demo-badges/trophy.png"] },
+		{ text: "Sélections en Équipe de France", badges: ["FR"] },
+		{ text: "Championne de France U19", badges: ["/demo-badges/trophy.png"] },
+	],
+	},
+	{
+	year: "Jan. 2023 - Juin 2023",
+	club: "AS Monaco",
+	clubLogo: "/demo-club/Logo_Olympique_de_Marseille.svg.webp",
+	division: "Ligue 1",
+	divisionLogo: "/demo-divisions/ligue 1 fond blanc.png",
+	category: "Sénior",
+	isCurrent: false,
+	matches: "14",
+	goals: "12",
+	assists: "4",
+	avgPlayingTime: "78",
+	comments: [
+		{ text: "Prêtée par le Paris Saint-Germain", badges: ["/demo-badges/loan.png"] },
+		{ text: "Première sélection avec le Maroc U18", badges: ["MA", "/demo-badges/trophy.png"] },
+	],
+	},
+	{
+	year: "Juil. 2022 - Déc. 2022",
+	club: "Paris Saint-Germain",
+	clubLogo: "/demo-club/OL.png",
+	division: "Ligue 1",
+	divisionLogo: "/demo-divisions/ligue 1 fond noir.png",
+	category: "Sénior",
+	isCurrent: false,
+	matches: "12",
+	goals: "8",
+	assists: "3",
+	avgPlayingTime: "70",
+	comments: [
+		{ text: "Début de saison au PSG", badges: [] },
+	],
 	},
 ],
 formations: [
@@ -691,18 +730,120 @@ return (
 		</div>
 		</div>
 
-		{/* Temporary: Show which background is being used */}
-		<div style={{
-		position: "absolute",
-		bottom: "10px",
-		left: "10px",
-		backgroundColor: "rgba(0,0,0,0.7)",
-		color: "white",
-		padding: "5px 10px",
-		fontSize: "10px",
-		borderRadius: "4px",
-		}}>
-		Background: {backgroundImage}
+		{/* ============== CARRIÈRE & STATISTIQUES ============== */}
+		<div
+			style={{
+				position: "absolute",
+				top: "320px",
+				left: "350px",
+				width: "440px",
+				color: "#000000",
+			}}
+		>
+			{/* Seasons */}
+			{data.seasons.map((season, idx) => (
+				<div
+					key={idx}
+					style={{
+						marginBottom: "15px",
+						paddingBottom: "10px",
+						borderBottom: idx < data.seasons.length - 1 ? "1px solid #ddd" : "none",
+						display: "flex",
+						justifyContent: "space-between",
+					}}
+				>
+					{/* Left side - Season info */}
+					<div style={{ flex: 1 }}>
+						{/* Year + Club */}
+						<div style={{ fontWeight: "bold", marginBottom: "4px" }}>
+							<span style={{ color: "#000000" }}>{season.year.split("-")[0]}</span>
+							<span style={{ color: data.cvColor }}>{" \u2794 "}</span>
+							<span style={{ color: "#000000" }}>{season.year.split("-")[1]}</span>
+							<span> - {season.club.toUpperCase()}</span>
+						</div>
+
+						{/* Division + Category */}
+						<div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+							<span style={{ color: data.cvColor, fontWeight: "bold", fontSize: "12px", textTransform: "uppercase" }}>
+								{season.category} / {season.division}
+							</span>
+							{season.divisionLogo && (
+								<img 
+									src={season.divisionLogo} 
+									alt={season.division} 
+									style={{ height: "18px", objectFit: "contain" }}
+								/>
+							)}
+						</div>
+
+						{/* Comments with badges */}
+						<ul style={{ margin: 0, padding: "0 0 0 15px", fontSize: "11px", lineHeight: "1.6", listStyleType: "disc" }}>
+							{season.comments.map((comment, cIdx) => (
+								<li key={cIdx} style={{ display: "list-item", paddingLeft: "4px" }}>
+									<span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+										<span>{typeof comment === "string" ? comment : comment.text}</span>
+										{typeof comment !== "string" && comment.badges && comment.badges.map((badge, bIdx) => (
+											badge.length === 2 ? (
+												/* Flag badge */
+												<span
+													key={bIdx}
+													className={`fi fi-${badge.toLowerCase()}`}
+													style={{ fontSize: "12px" }}
+												/>
+											) : (
+												/* Image badge */
+												<img
+													key={bIdx}
+													src={badge}
+													alt=""
+													style={{ height: "14px", objectFit: "contain" }}
+												/>
+											)
+										))}
+									</span>
+								</li>
+							))}
+						</ul>
+
+						{/* Stats (if has matches) */}
+						{season.matches && parseInt(season.matches) > 0 && (
+							<div style={{ 
+								display: "flex", 
+								gap: "15px", 
+								marginTop: "8px",
+								fontSize: "11px",
+								backgroundColor: "#f5f5f5",
+								padding: "6px 10px",
+								borderRadius: "4px",
+							}}>
+								<div>
+									<strong style={{ fontSize: "14px" }}>{season.goals}</strong> buts
+								</div>
+								<div>
+									<strong style={{ fontSize: "14px" }}>{season.assists}</strong> passes déc.
+								</div>
+								<div>
+									<strong style={{ fontSize: "14px" }}>{season.matches}</strong> matchs
+								</div>
+								<div>
+									<strong style={{ fontSize: "14px" }}>{season.avgPlayingTime}'</strong> Temps moy.
+								</div>
+							</div>
+						)}
+					</div>
+
+					{/* Right side - Club logo */}
+					{season.clubLogo && (
+						<div style={{ marginLeft: "10px", flexShrink: 0 }}>
+							<img
+								src={season.clubLogo}
+								alt={season.club}
+								style={{ width: "75px", height: "75px", objectFit: "contain" }}
+							/>
+						</div>
+					)}
+				</div>
+			))}
 		</div>
 	</div>
 	</div>
