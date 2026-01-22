@@ -355,3 +355,74 @@ export async function GET(
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
+
+// PATCH: Basculer le statut is_treated d'un CV
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const resolvedParams = await params;
+  const resumeId = resolvedParams.id;
+
+  try {
+    // Vérifier que le resume existe et récupérer son statut actuel
+    const existing = db.prepare(`SELECT id, is_treated FROM Resume WHERE id = ?`).get(resumeId) as { id: number; is_treated: number } | undefined;
+    if (!existing) {
+      return NextResponse.json({ message: "Resume not found" }, { status: 404 });
+    }
+
+    // Basculer le statut
+    const newStatus = existing.is_treated ? 0 : 1;
+    db.prepare(`UPDATE Resume SET is_treated = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(newStatus, resumeId);
+
+    return NextResponse.json({ 
+      message: "Status updated successfully",
+      isTreated: newStatus === 1
+    }, { status: 200 });
+  } catch (err: unknown) {
+    console.error("Erreur PATCH /api/resumes/[id]:", err);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+}
+
+// DELETE: Supprimer un CV et toutes ses données associées
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const resolvedParams = await params;
+  const resumeId = resolvedParams.id;
+
+  try {
+    // Vérifier que le resume existe
+    const existing = db.prepare(`SELECT id FROM Resume WHERE id = ?`).get(resumeId);
+    if (!existing) {
+      return NextResponse.json({ message: "Resume not found" }, { status: 404 });
+    }
+
+    db.transaction(() => {
+      // Supprimer les Club_Season liés aux Seasons de ce resume
+      const seasons = db.prepare(`SELECT id FROM Season WHERE resume_id = ?`).all(resumeId) as { id: number }[];
+      for (const season of seasons) {
+        db.prepare(`DELETE FROM Club_Season WHERE season_id = ?`).run(season.id);
+      }
+
+      // Supprimer les Seasons
+      db.prepare(`DELETE FROM Season WHERE resume_id = ?`).run(resumeId);
+
+      // Supprimer les Formations
+      db.prepare(`DELETE FROM Formations WHERE resume_id = ?`).run(resumeId);
+
+      // Supprimer les Essais
+      db.prepare(`DELETE FROM Essais WHERE resume_id = ?`).run(resumeId);
+
+      // Supprimer le Resume
+      db.prepare(`DELETE FROM Resume WHERE id = ?`).run(resumeId);
+    })();
+
+    return NextResponse.json({ message: "Resume deleted successfully" }, { status: 200 });
+  } catch (err: unknown) {
+    console.error("Erreur DELETE /api/resumes/[id]:", err);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+}

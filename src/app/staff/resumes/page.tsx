@@ -74,6 +74,8 @@ export default function Page() {
           isTreated={item.isTreated}
           submissionDate={item.createdAt}
           key={index}
+          onDelete={() => fetchResumes()}
+          onStatusChange={() => fetchResumes()}
         />
       ))}
     </div>
