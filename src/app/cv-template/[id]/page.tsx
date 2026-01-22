@@ -25,14 +25,14 @@ const POSITION_COORDS_433: Record<string, { top: number; left: number }> = {
   // Goalkeeper (1)
   "GB": { top: 210, left: 678 },
   // Defenders (4)
-  "DG": { top: 160, left: 610 },
+  "AG": { top: 160, left: 610 },
   "DCG": { top: 178, left: 650 },
   "DCD": { top: 178, left: 708 },
-  "DD": { top: 160, left: 745 },
+  "AD": { top: 160, left: 745 },
   // Midfielders (3)
-  "MG": { top: 112, left: 640 },
-  "MC": { top: 140, left: 678 },
-  "MD": { top: 112, left: 718 },
+  "MD": { top: 112, left: 640 },
+  "MCG": { top: 140, left: 678 },
+  "MCD": { top: 112, left: 718 },
   // Forwards (3)
   "AIG": { top: 76, left: 620 },
   "AC": { top: 48, left: 680 },
@@ -44,17 +44,41 @@ const POSITION_COORDS_352: Record<string, { top: number; left: number }> = {
   "GB": { top: 210, left: 678 },
   // Defenders (3)
   "DCG": { top: 178, left: 632 },
-  "DC": { top: 176, left: 678 },
+  "DCA": { top: 176, left: 678 },
   "DCD": { top: 178, left: 722 },
   // Midfielders (5)
-  "MG": { top: 137, left: 613 },
+  "PG": { top: 137, left: 613 },
   "MCG": { top: 126, left: 660 },
-  "MC": { top: 95, left: 680 },
+  "MD": { top: 95, left: 680 },
   "MCD": { top: 126, left: 703 },
-  "MD": { top: 137, left: 745 },
+  "PD": { top: 137, left: 745 },
   // Forwards (2)
   "ATG": { top: 65, left: 650 },
   "ATD": { top: 65, left: 708 },
+};
+
+// Position display names (human-readable) - must match form labels
+const POSITION_NAMES: Record<string, string> = {
+  // Goalkeeper
+  "GB": "GARDIEN DE BUT",
+  // Defenders
+  "AG": "ARRIÈRE GAUCHE",
+  "DCG": "DÉFENSEUR CENTRAL GAUCHE",
+  "DCA": "DÉFENSEUR CENTRAL AXE",
+  "DCD": "DÉFENSEUR CENTRAL DROIT",
+  "AD": "ARRIÈRE DROIT",
+  // Midfielders
+  "PG": "PISTON GAUCHE",
+  "PD": "PISTON DROIT",
+  "MD": "MILIEU DÉFENSIF",
+  "MCG": "MILIEU CENTRAL GAUCHE",
+  "MCD": "MILIEU CENTRAL DROIT",
+  // Forwards
+  "AIG": "AILIER GAUCHE",
+  "AC": "AVANT-CENTRE",
+  "AID": "AILIER DROIT",
+  "ATG": "ATTAQUANT GAUCHE",
+  "ATD": "ATTAQUANT DROIT",
 };
 
 // Dummy data for testing
@@ -69,8 +93,8 @@ const DUMMY_DATA = {
   weight: "73",
   vma: "22.5",
   composition: "4-3-3" as "4-3-3" | "3-5-2",
-  mainPosition: "AC",
-  secondaryPosition: "AIG",
+  mainPosition: "DCG",
+  secondaryPosition: "MCD",
   qualities: ["Vitesse", "Dribble", "Finition", "Intelligence de jeu", "Puissance de frappe"],
   email: "kylian.mbappe@example.com",
   phone: "+33 6 12 34 56 78",
@@ -262,6 +286,60 @@ export default function CVTemplatePage() {
               objectFit: "cover",
             }}
           />
+        </div>
+
+        {/* ============== POSITION LABELS ============== */}
+        <div
+          style={{
+            position: "absolute",
+            top: "130px",
+            left: "300px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
+          }}
+        >
+          {(() => {
+            const mainName = POSITION_NAMES[data.mainPosition] || data.mainPosition;
+            const secondaryName = POSITION_NAMES[data.secondaryPosition] || data.secondaryPosition;
+            
+            // Calculate font size: 22px for ≤16 chars, shrink for longer
+            const getSize = (text: string) => {
+              if (text.length <= 16) return 22;
+              if (text.length <= 20) return 18;
+              if (text.length <= 24) return 15;
+              return 13;
+            };
+            
+            return (
+              <>
+                <div
+                  style={{
+                    color: "white",
+                    fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+                    fontSize: `${getSize(mainName)}px`,
+                    fontWeight: "900",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  {mainName}
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+                    fontSize: `${getSize(secondaryName)}px`,
+                    fontWeight: "900",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                  }}
+                >
+                  {secondaryName}
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* ============== FOOTBALL FIELD POSITIONS ============== */}
