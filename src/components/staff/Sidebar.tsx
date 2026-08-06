@@ -13,12 +13,7 @@ export default function StaffSidebar() {
     { name: "Gestion des CVs", href: "/staff/resumes", icon: <FileText size={20} /> },
   ]
 
-  const handleLogout = async () => {
-    await fetch("/api/staff/logout", { method: "POST" })
-    router.push("/staff/login")
-    router.refresh()
-  }
-  
+
   return (
     <div className="w-64 h-screen bg-[#000000] border-r border-[#ff9228] flex flex-col shadow-2xl">
       <div className="p-6 border-b border-[#ff9228]">
@@ -47,7 +42,6 @@ export default function StaffSidebar() {
           <span className="font-medium">Formulaire joueur</span>
         </Link>
         <button
-          onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-3 w-full text-[#ffffff] rounded-xl transition-all duration-300 hover:bg-red-500 hover:text-white hover:shadow-lg group cursor-pointer"
         >
           <LogOut size={20} className="text-red-400 group-hover:text-white transition-colors duration-300" />
