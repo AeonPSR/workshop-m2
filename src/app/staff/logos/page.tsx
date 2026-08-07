@@ -17,7 +17,7 @@ export default function Page() {
      const fetchLogos = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/logos");
+        const res = await fetch("/api/logos");
         if (!res.ok) throw new Error("Erreur lors du fetch");
         const data: Logo[] = await res.json();
         setLogos(data);
@@ -39,7 +39,7 @@ export default function Page() {
   
   const handleAddLogo = async (logo: { name: string; image: string; initials: string }) => {
     try {
-      const res = await fetch("http://localhost:3000/api/logos", {
+      const res = await fetch("/api/logos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(logo),

@@ -214,7 +214,7 @@ export default function PlayerForm() {
         comments: Array<{ text: string; badge: string }>;
       };
     }>,
-    
+
     // Step 5 - Formation & Trials
     formations: [] as Array<{
       year: string;
@@ -298,8 +298,8 @@ export default function PlayerForm() {
             isCurrent: s.current_season ?? false,
             firstHalf: {
               club: s.clubSeasons[0].name ?? "",
-              divisionLogo :s.clubSeasons[0].logo_division ?? "", 
-              clubLogo : s.clubSeasons[0].logo_club ?? "",
+              divisionLogo: s.clubSeasons[0].logo_division ?? "",
+              clubLogo: s.clubSeasons[0].logo_club ?? "",
               division: s.clubSeasons[0].division ?? "",
               category: s.clubSeasons[0].category ?? "",
               matches: s.clubSeasons[0].matchs?.toString() ?? "",
@@ -312,8 +312,8 @@ export default function PlayerForm() {
             secondHalf: {
               club: s.clubSeasons[1].name ?? "",
               division: s.clubSeasons[1].division ?? "",
-              divisionLogo :s.clubSeasons[1].logo_division ?? "", 
-              clubLogo : s.clubSeasons[1].logo_club ?? "",
+              divisionLogo: s.clubSeasons[1].logo_division ?? "",
+              clubLogo: s.clubSeasons[1].logo_club ?? "",
               category: s.clubSeasons[1].category ?? "",
               matches: s.clubSeasons[1].matchs?.toString() ?? "",
               goals: s.clubSeasons[1].goals?.toString() ?? "",
@@ -342,8 +342,8 @@ export default function PlayerForm() {
             isCurrent: s.current_season ?? false,
             club: club.name ?? "",
             division: club.division ?? "",
-            divisionLogo : club.logo_division ?? "", 
-            clubLogo : club.logo_club ?? "",
+            divisionLogo: club.logo_division ?? "",
+            clubLogo: club.logo_club ?? "",
             category: club.category ?? "",
             matches: club.matchs?.toString() ?? "",
             goals: club.goals?.toString() ?? "",
@@ -401,7 +401,7 @@ export default function PlayerForm() {
     if (!id) return;
 
     const fetchResume = async () => {
-      const res = await fetch(`http://localhost:3000/api/resumes/${id}`);
+      const res = await fetch(`/api/resumes/${id}`);
 
       if (!res.ok) return;
       const data = await res.json();
@@ -418,19 +418,19 @@ export default function PlayerForm() {
 
   useEffect(() => {
     const fetchBadges = async () => {
-      const res = await fetch("http://localhost:3000/api/badges");
+      const res = await fetch("/api/badges");
       const data = await res.json();
       setBadges(data);
     };
 
     const fetchLogos = async () => {
-      const res = await fetch("http://localhost:3000/api/logos");
+      const res = await fetch("/api/logos");
       const data = await res.json();
       setLogos(data);
     };
 
     const fetchLogoDivisions = async () => {
-      const res = await fetch("http://localhost:3000/api/logo_divisions");
+      const res = await fetch("/api/logo_divisions");
       const data = await res.json();
       setLogoDivisions(data);
     };
@@ -503,8 +503,8 @@ export default function PlayerForm() {
                   division: s.firstHalf.division,
                   goals: Number(s.firstHalf.goals) || 0,
                   assists: Number(s.firstHalf.assists) || 0,
-                   logo_division : s.firstHalf.divisionLogo || null,
-                  logo_club : s.firstHalf.clubLogo || null,
+                  logo_division: s.firstHalf.divisionLogo || null,
+                  logo_club: s.firstHalf.clubLogo || null,
                   average_playing_time: Number(s.firstHalf.avgPlayingTime) || 0,
                   ...mapComments(s.firstHalf.comments),
                 },
@@ -516,8 +516,8 @@ export default function PlayerForm() {
                   division: s.secondHalf.division,
                   goals: Number(s.secondHalf.goals) || 0,
                   assists: Number(s.secondHalf.assists) || 0,
-                   logo_division : s.secondHalf.divisionLogo || null,
-                  logo_club : s.secondHalf.clubLogo || null,
+                  logo_division: s.secondHalf.divisionLogo || null,
+                  logo_club: s.secondHalf.clubLogo || null,
                   average_playing_time: Number(s.secondHalf.avgPlayingTime) || 0,
                   ...mapComments(s.secondHalf.comments),
                 }
@@ -531,8 +531,8 @@ export default function PlayerForm() {
                   division: s.division,
                   goals: Number(s.goals) || 0,
                   assists: Number(s.assists) || 0,
-                  logo_division : s.divisionLogo || null,
-                  logo_club : s.clubLogo || null,
+                  logo_division: s.divisionLogo || null,
+                  logo_club: s.clubLogo || null,
                   average_playing_time: Number(s.avgPlayingTime) || 0,
                   ...mapComments(s.comments),
                 }
@@ -552,19 +552,19 @@ export default function PlayerForm() {
           club: t.club,
           year: t.year,
         })),
-        
+
         // Internationals - filter out empty strings
         internationals: formData.internationals
           .filter(code => code && code.trim() !== "")
           .map(code => ({ country_code: code })),
-        
+
         // Links - only send shareLink
-        links: formData.shareLink?.trim() 
-          ? [{ url: formData.shareLink.trim(), link_type: 'share' }] 
+        links: formData.shareLink?.trim()
+          ? [{ url: formData.shareLink.trim(), link_type: 'share' }]
           : [],
       };
 
-      const res = await fetch(`http://localhost:3000/api/resumes/${id}`, {
+      const res = await fetch(`/api/resumes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -577,7 +577,7 @@ export default function PlayerForm() {
       router.push('/staff/resumes');
     } catch (err: any) {
       console.error(err);
-      
+
       alert(`Erreur Serveur`);
     }
   };
@@ -776,7 +776,96 @@ export default function PlayerForm() {
     updateFormData("trials", formData.trials.filter((_, i) => i !== index));
   };
 
-  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, 6));
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const validateCurrentStep = () => {
+    setErrorMessage("");
+
+    if (currentStep === 1) {
+      if (!formData.photoPreview) {
+        setErrorMessage("Veuillez ajouter une photo.");
+        return false;
+      }
+
+      if (!formData.firstName.trim()) {
+        setErrorMessage("Le prénom est obligatoire.");
+        return false;
+      }
+
+      if (!formData.lastName.trim()) {
+        setErrorMessage("Le nom est obligatoire.");
+        return false;
+      }
+
+      if (!formData.nationalities[0]) {
+        setErrorMessage("La nationalité est obligatoire.");
+        return false;
+      }
+    }
+
+    if (currentStep === 2) {
+      if (!formData.mainPosition) {
+        setErrorMessage("Le poste principal est obligatoire.");
+        return false;
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!formData.birthDate) {
+        setErrorMessage("La date de naissance est obligatoire.");
+        return false;
+      }
+
+      if (!formData.preferredFoot) {
+        setErrorMessage("Le pied fort est obligatoire.");
+        return false;
+      }
+
+      if (!formData.height) {
+        setErrorMessage("La taille est obligatoire.");
+        return false;
+      }
+
+      if (!formData.email) {
+        setErrorMessage("L'email est obligatoire.");
+        return false;
+      }
+
+      if (!formData.phone) {
+        setErrorMessage("Le téléphone est obligatoire.");
+        return false;
+      }
+    }
+
+    if (currentStep === 4) {
+      for (const season of formData.seasons) {
+        if (!season.year) {
+          setErrorMessage("Toutes les saisons doivent avoir une année.");
+          return false;
+        }
+
+        if (!season.isCurrent && !season.matches) {
+          setErrorMessage("Le nombre de matchs est obligatoire.");
+          return false;
+        }
+      }
+    }
+
+    if (currentStep === 6) {
+      if (!formData.cvColor) {
+        setErrorMessage("Veuillez choisir une couleur de CV.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const nextStep = () => {
+    if (!validateCurrentStep()) return;
+
+    setCurrentStep((s) => Math.min(s + 1, 6));
+  };
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   const getNationality = (code: string) => NATIONALITIES.find(n => n.code === code);
@@ -1513,7 +1602,7 @@ export default function PlayerForm() {
 
                             <select
                               value={season.clubLogo}
- className="text-white bg-gray-800 p-2"
+                              className="text-white bg-gray-800 p-2"
 
                               onChange={(e) => updateSeason(index, "clubLogo", e.target.value)}
                             >
@@ -1535,7 +1624,7 @@ export default function PlayerForm() {
 
 
                             <select
- className="text-white bg-gray-800 p-2"
+                              className="text-white bg-gray-800 p-2"
 
                               value={season.divisionLogo}
                               onChange={(e) => updateSeason(index, "divisionLogo", e.target.value)}
@@ -1686,20 +1775,20 @@ export default function PlayerForm() {
                                   placeholder="Club"
                                 />
 
-                                 <select
-                              value={season.clubLogo}
- className="text-white bg-gray-800 p-2"
+                                <select
+                                  value={season.clubLogo}
+                                  className="text-white bg-gray-800 p-2"
 
-                              onChange={(e) => updateSeasonHalf(index, "firstHalf" , "clubLogo", e.target.value)}
-                            >
-                              <option value="">-- Sélectionner un logo du club --</option>
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "clubLogo", e.target.value)}
+                                >
+                                  <option value="">-- Sélectionner un logo du club --</option>
 
-                              {logos.map((logo) => (
-                                <option key={logo.id} value={logo.image}>
-                                  {logo.name}
-                                </option>
-                              ))}
-                            </select>
+                                  {logos.map((logo) => (
+                                    <option key={logo.id} value={logo.image}>
+                                      {logo.name}
+                                    </option>
+                                  ))}
+                                </select>
                                 <input
                                   type="text"
                                   value={season.firstHalf.division}
@@ -1707,19 +1796,19 @@ export default function PlayerForm() {
                                   className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-white/40"
                                   placeholder="Division (ex: N2)"
                                 />
-    <select           className="text-white bg-gray-800 p-2"
+                                <select className="text-white bg-gray-800 p-2"
 
-                              value={season.divisionLogo}
-                              onChange={(e) => updateSeasonHalf(index,"firstHalf","divisionLogo", e.target.value)}
-                            >
-                              <option value="">-- Sélectionner un logo du division --</option>
+                                  value={season.divisionLogo}
+                                  onChange={(e) => updateSeasonHalf(index, "firstHalf", "divisionLogo", e.target.value)}
+                                >
+                                  <option value="">-- Sélectionner un logo du division --</option>
 
-                              {logosDivision.map((logoDivision) => (
-                                <option key={logoDivision.id} value={logoDivision.image}>
-                                  {logoDivision.name}
-                                </option>
-                              ))}
-                            </select>
+                                  {logosDivision.map((logoDivision) => (
+                                    <option key={logoDivision.id} value={logoDivision.image}>
+                                      {logoDivision.name}
+                                    </option>
+                                  ))}
+                                </select>
                                 <input
                                   type="text"
                                   value={season.firstHalf.category}
@@ -1825,19 +1914,19 @@ export default function PlayerForm() {
                                   placeholder="Club"
                                 />
 
-                                       <select
-                              value={season.clubLogo}
- className="text-white bg-gray-800"
-                              onChange={(e) => updateSeasonHalf(index, "secondHalf" , "clubLogo", e.target.value)}
-                            >
-                              <option value="">-- Sélectionner un logo du club --</option>
+                                <select
+                                  value={season.clubLogo}
+                                  className="text-white bg-gray-800"
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "clubLogo", e.target.value)}
+                                >
+                                  <option value="">-- Sélectionner un logo du club --</option>
 
-                              {logos.map((logo) => (
-                                <option key={logo.id} value={logo.image}>
-                                  {logo.name}
-                                </option>
-                              ))}
-                            </select>
+                                  {logos.map((logo) => (
+                                    <option key={logo.id} value={logo.image}>
+                                      {logo.name}
+                                    </option>
+                                  ))}
+                                </select>
                                 <input
                                   type="text"
                                   value={season.secondHalf.division}
@@ -1846,19 +1935,19 @@ export default function PlayerForm() {
                                   placeholder="Division (ex: N2)"
                                 />
 
-                                  <select
- className="text-white bg-gray-800 p-2"
-                              value={season.divisionLogo}
-                              onChange={(e) => updateSeasonHalf(index,"secondHalf","divisionLogo", e.target.value)}
-                            >
-                              <option value="">-- Sélectionner un logo du division --</option>
+                                <select
+                                  className="text-white bg-gray-800 p-2"
+                                  value={season.divisionLogo}
+                                  onChange={(e) => updateSeasonHalf(index, "secondHalf", "divisionLogo", e.target.value)}
+                                >
+                                  <option value="">-- Sélectionner un logo du division --</option>
 
-                              {logosDivision.map((logoDivision) => (
-                                <option key={logoDivision.id} value={logoDivision.image}>
-                                  {logoDivision.name}
-                                </option>
-                              ))}
-                            </select>
+                                  {logosDivision.map((logoDivision) => (
+                                    <option key={logoDivision.id} value={logoDivision.image}>
+                                      {logoDivision.name}
+                                    </option>
+                                  ))}
+                                </select>
                                 <input
                                   type="text"
                                   value={season.secondHalf.category}
@@ -2128,11 +2217,19 @@ export default function PlayerForm() {
                     rows={4}
                   />
                 </div>
+
+              </div>
+            )}
+
+            {errorMessage && (
+              <div className="mt-4 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-red-400 text-sm">
+                {errorMessage}
               </div>
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
+            <div className="flex justify-between mt-4 pt-6 border-t border-white/10">
+
               <button
                 type="button"
                 onClick={prevStep}

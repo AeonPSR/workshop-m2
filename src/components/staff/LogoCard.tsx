@@ -14,7 +14,7 @@ export default function LogoCard({ id, image, name, initials, onRefresh }: LogoC
   const handleEditLogo = async (  logo: { name: string; image: string; initials: string }
 ) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/logos/${id}`, {
+    const res = await fetch(`/api/logos/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(logo),
@@ -30,7 +30,7 @@ export default function LogoCard({ id, image, name, initials, onRefresh }: LogoC
 
     const handleDelete = async () => {
         try {
-            await fetch(`http://localhost:3000/api/logos/${id}`, {
+            await fetch(`/api/logos/${id}`, {
                 method: "DELETE",
             });
             setConfirmModalOpen(false);

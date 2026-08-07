@@ -25,7 +25,7 @@ STAFF_ACCESS_CODE=votre_code_acces
 npm run dev
 ```
 
-Ouvrir [http://localhost:3000](http://localhost:3000)
+Ouvrir []()
 
 ## Structure
 

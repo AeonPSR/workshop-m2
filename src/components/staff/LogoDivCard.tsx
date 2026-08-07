@@ -14,7 +14,7 @@ export default function LogoDivCard({ id, image, name, initials, onRefresh }: Lo
   const handleEditLogoDiv = async (  logoDiv: { name: string; image: string; initials: string }
 ) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/logo_divisions/${id}`, {
+    const res = await fetch(`/api/logo_divisions/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(logoDiv),
@@ -30,7 +30,7 @@ export default function LogoDivCard({ id, image, name, initials, onRefresh }: Lo
 
     const handleDelete = async () => {
         try {
-            await fetch(`http://localhost:3000/api/logo_divisions/${id}`, {
+            await fetch(`/api/logo_divisions/${id}`, {
                 method: "DELETE",
             });
             setConfirmModalOpen(false);

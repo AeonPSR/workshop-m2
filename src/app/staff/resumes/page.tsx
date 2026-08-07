@@ -11,7 +11,7 @@ export default function Page() {
      const fetchResumes = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/resumes");
+        const res = await fetch("/api/resumes");
         if (!res.ok) throw new Error("Erreur lors du fetch");
         const data: Resume[] = await res.json();
         setResumes(data);

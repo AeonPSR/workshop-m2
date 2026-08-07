@@ -2,7 +2,7 @@
 
 Cette documentation décrit tous les endpoints de l'API REST de Scoutify, une application de génération de CV sportifs pour joueurs de football.
 
-**URL de base :** `http://localhost:3000/api`
+**URL de base :** `/api`
 
 ---
 
@@ -744,7 +744,7 @@ POST /api/staff/logout
 ### Créer un CV complet avec fetch
 
 ```javascript
-const response = await fetch('http://localhost:3000/api/resumes', {
+const response = await fetch('/api/resumes', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({

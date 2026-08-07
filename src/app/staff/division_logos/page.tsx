@@ -13,7 +13,7 @@ export default function Page() {
      const fetchLogoDivisions = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/logo_divisions");
+        const res = await fetch("/api/logo_divisions");
         if (!res.ok) throw new Error("Erreur lors du fetch");
         const data: LogoDivision[] = await res.json();
         setLogoDivisions(data);
@@ -33,7 +33,7 @@ export default function Page() {
 
    const handleAddLogoDiv = async (logo: { name: string; image: string; initials: string }) => {
     try {
-      const res = await fetch("http://localhost:3000/api/logo_divisions", {
+      const res = await fetch("/api/logo_divisions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(logo),

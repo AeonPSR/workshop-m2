@@ -135,6 +135,7 @@ const STEPS = [
 ];
 
 export default function PlayerForm() {
+
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -221,6 +222,8 @@ export default function PlayerForm() {
     transfermarktUrl: "",
     notes: "",
   });
+
+  
 
   const [isNationalityModalOpen, setIsNationalityModalOpen] = useState(false);
   const [editingNationalityIndex, setEditingNationalityIndex] = useState(0);
@@ -430,7 +433,7 @@ seasons: formData.seasons.map(s => {
         : [],
     };
 
-    const res = await fetch('http://localhost:3000/api/resumes', {
+    const res = await fetch('/api/resumes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -631,7 +634,96 @@ useEffect(() => {
     updateFormData("trials", formData.trials.filter((_, i) => i !== index));
   };
 
-  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, 6));
+    const [errorMessage, setErrorMessage] = useState("");
+  
+  const validateCurrentStep = () => {
+  setErrorMessage("");
+
+  if (currentStep === 1) {
+    if (!formData.photoPreview) {
+      setErrorMessage("Veuillez ajouter une photo.");
+      return false;
+    }
+
+    if (!formData.firstName.trim()) {
+      setErrorMessage("Le prénom est obligatoire.");
+      return false;
+    }
+
+    if (!formData.lastName.trim()) {
+      setErrorMessage("Le nom est obligatoire.");
+      return false;
+    }
+
+    if (!formData.nationalities[0]) {
+      setErrorMessage("La nationalité est obligatoire.");
+      return false;
+    }
+  }
+
+  if (currentStep === 2) {
+    if (!formData.mainPosition) {
+      setErrorMessage("Le poste principal est obligatoire.");
+      return false;
+    }
+  }
+
+  if (currentStep === 3) {
+    if (!formData.birthDate) {
+      setErrorMessage("La date de naissance est obligatoire.");
+      return false;
+    }
+
+    if (!formData.preferredFoot) {
+      setErrorMessage("Le pied fort est obligatoire.");
+      return false;
+    }
+
+    if (!formData.height) {
+      setErrorMessage("La taille est obligatoire.");
+      return false;
+    }
+
+    if (!formData.email) {
+      setErrorMessage("L'email est obligatoire.");
+      return false;
+    }
+
+    if (!formData.phone) {
+      setErrorMessage("Le téléphone est obligatoire.");
+      return false;
+    }
+  }
+
+  if (currentStep === 4) {
+    for (const season of formData.seasons) {
+      if (!season.year) {
+        setErrorMessage("Toutes les saisons doivent avoir une année.");
+        return false;
+      }
+
+      if (!season.isCurrent && !season.matches) {
+        setErrorMessage("Le nombre de matchs est obligatoire.");
+        return false;
+      }
+    }
+  }
+
+  if (currentStep === 6) {
+    if (!formData.cvColor) {
+      setErrorMessage("Veuillez choisir une couleur de CV.");
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const nextStep = () => {
+  if (!validateCurrentStep()) return;
+
+  setCurrentStep((s) => Math.min(s + 1, 6));
+};
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   const getNationality = (code: string) => NATIONALITIES.find(n => n.code === code);
@@ -1219,6 +1311,7 @@ useEffect(() => {
                         Email *
                       </label>
                       <input
+                        required
                         type="email"
                         value={formData.email}
                         onChange={(e) => updateFormData("email", e.target.value)}
@@ -1864,7 +1957,12 @@ useEffect(() => {
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
+             {errorMessage && (
+              <div className="mt-4 rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-red-400 text-sm">
+                {errorMessage}
+              </div>
+            )}
+            <div className="flex justify-between mt-4 pt-6 border-t border-white/10">
               <button
                 type="button"
                 onClick={prevStep}

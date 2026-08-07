@@ -14,7 +14,7 @@ export default function BadgeCard({ id, image, name, initials, onRefresh }: Badg
   const handleEditBadge = async (  badge: { name: string; image: string; initials: string }
 ) => {
   try {
-    const res = await fetch(`http://localhost:3000/api/badges/${id}`, {
+    const res = await fetch(`/api/badges/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(badge),
@@ -30,7 +30,7 @@ export default function BadgeCard({ id, image, name, initials, onRefresh }: Badg
 
     const handleDelete = async () => {
         try {
-            await fetch(`http://localhost:3000/api/badges/${id}`, {
+            await fetch(`/api/badges/${id}`, {
                 method: "DELETE",
             });
             setConfirmModalOpen(false);

@@ -13,7 +13,7 @@ export default function Page() {
      const fetchBadges = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/badges");
+        const res = await fetch("/api/badges");
         if (!res.ok) throw new Error("Erreur lors du fetch");
         const data: Badge[] = await res.json();
         setBadges(data);
@@ -33,7 +33,7 @@ export default function Page() {
 
    const handleAddBadge = async (logo: { name: string; image: string; initials: string }) => {
     try {
-      const res = await fetch("http://localhost:3000/api/badges", {
+      const res = await fetch("/api/badges", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(logo),
